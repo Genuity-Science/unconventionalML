@@ -24,7 +24,7 @@ library(gplots)
 library(ggplot2)
 
 n_pcs=44 # number of principal components
-figpath="/Users/sgujja/OneDrive - NextCODE Health/Omar_Code/Code/QISKit/HClustering_reproducibility_lumAB_44genes/figs/rows_heatmaps/"
+figpath="./figs/rows_heatmaps/"
 hmcols = rev(colorRampPalette(brewer.pal(11,"RdBu"))(11))
 blueyellow = function(n){colorpanel(n,"blue","white","yellow")}
 barcolors=c("#00FFFFFF","#FF0000FF")
@@ -86,7 +86,7 @@ importClustOverride = function(algorithm="c"){
 ########### 
 # load data
 
-datasetname = "lumAB"; rawdata=as.data.frame(read_feather("/Users/sgujja/OneDrive - NextCODE Health/Omar_Code/Code/data/all/data5_lumAB_train_normalized.feather"))
+datasetname = "lumAB"; rawdata=as.data.frame(read_feather("data/data5_lumAB_train_normalized.feather"))
 
 X = rawdata[2:ncol(rawdata)]
 y = rawdata[1]

@@ -1,1 +1,3 @@
-
+LumA_LumB_input_forR.txt : text file with a list of top 44 genes of PC1 for LumA vs. LumB comparison
+Pmc_Crawling_forCircos.R : Rscript to generate the count of hits to the search term "cancer" or "breast cancer" for each gene using PMC as the database
+pmc_<search term>_Gene_Link_Counts.csv : Two column output file with gene name and number of hits to the search term in the PMC database.

@@ -14,7 +14,6 @@ entrez_db_summary("pmc")
 
 #####################################################################################################
 # Load the Data for the gene list inputs
-setwd("~/OneDrive - NextCODE Health/Work_Experiments/quantum/NLP_tool_PMC/")
 input_gene_list <- read.csv("LumA_LumB_input_forR.txt", sep = "\t", header = FALSE, stringsAsFactors = FALSE)
 #####################################################################################################
 # Set Parameters

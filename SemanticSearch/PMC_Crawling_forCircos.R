@@ -13,21 +13,21 @@ entrez_db_summary("pmc")
 
 #####################################################################################################
 # Load the Data for the gene list inputs
-setwd("~/OneDrive - NextCODE Health/Work_Experiments/quantum/NLP_tool_PMC/")
 input_gene_list <- read.csv("LumA_LumB_input_forR.txt", sep = "\t", header = FALSE, stringsAsFactors = FALSE)
 #####################################################################################################
 # Set Parameters
 # Add the databse name from which the query terms are to be searched
 db_name <- "pmc"
-# Add the second term with the gene : eg. cancer or breast canver
-second_search_term <- "breast cancer"
+# Add the second term with the gene : eg. cancer or breast cancer
+second_search_term <- "breast cancer" # change this to "cancer" to get cancer term hits
 #####################################################################################################
 # Query the database
 paper_names_list <- list()
 gene_hits <- list()
 for (i in 1:nrow(input_gene_list)){
   # Create the Query Term
-  query <- paste0("(", input_gene_list$V1[i],"[gene]) and (", second_search_term, "[ARTI])")
+  # ARTI indicates to consider from article body
+  query <- paste0("(", input_gene_list$V1[i],"[gene]) and (", second_search_term, "[ARTI])") 
   
   # Search for the query term and Cancer term
   r_search <- rentrez::entrez_search(db=db_name, term=query , retmax=50)

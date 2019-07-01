@@ -57,13 +57,3 @@ write.csv(summary_df, paste0(db_name, "_", second_search_term, "_Gene_Link_Count
 save(paper_names_list, file = paste0(db_name, "_", second_search_term, "_Gene_Links.RData"))
 #####################################################################################################
 
-#####################################################################################################
-# Create the bins for Circos Plots
-#Load the cancer link files
-Cancer_Gene_Link_Counts <- read.csv("pmc_cancer_Gene_Link_Counts_2.csv", sep = ",")
-breastCanvcr_Gene_Link_Counts <- read.csv("pmc_breast cancer_Gene_Link_Counts_2.csv", sep = ",")
-cancer_hits_bins <- cbind(Cancer_Gene_Link_Counts, Hmisc::cut2( Cancer_Gene_Link_Counts$Hits, g=5))
-View(cancer_hits_bins)
-breast_cancer_hits_bins <- cbind(breastCanvcr_Gene_Link_Counts, Hmisc::cut2( breastCanvcr_Gene_Link_Counts$Hits, g=5))
-View(breast_cancer_hits_bins)
-#####################################################################################################

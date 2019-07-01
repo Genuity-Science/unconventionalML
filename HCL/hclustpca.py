@@ -16,7 +16,6 @@ from ete3 import PhyloTree
 import re
 
 print("imported libraries\n")
-#filepath = "/Users/sgujja/OneDrive - NextCODE Health/Omar_Code/quantumMachineLearning - Documents/Cuts/pc1_top_44_genes_train_matrix.feather"
 filepath = "lumAB_pc1_44.feather"
 
 def unravel_matrix_uppertri(matrix):

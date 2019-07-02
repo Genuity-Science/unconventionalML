@@ -14,3 +14,5 @@ Output metrics are saved to "*multirun_save.RDS"
 
 lumAB_alldata_multirun_44genes.R
 Script to run classical classification algorithms on top 44 genes of PC1 for LumA vs. LumB binomial comparison.
+pc1_top_44_genes_ids.txt
+The 44 most informative genes, by PCA loading of PC1, from the original training set for the LumA vs. LumB breast cancer dataset. 

@@ -32,29 +32,13 @@ library(PRROC)
 
 Sys.setenv(TZ="US/Eastern")
 
-# get_glm_results = function(glm, data, y_levels) {
-#   class_pred = predict(glm, data, type="class", s = "lambda.min")
-#   class_pred = factor(class_pred, levels = levels(y_levels))
-#   return(class_pred)
-# }
-# 
-# get_stats = function(cm_frame, run, algo, dataset, all_stats, auc_val) {
-#   stat_vec = c(run, algo, dataset, cm_frame$overall['Accuracy'], cm_frame$byClass['Balanced Accuracy'], cm_frame$byClass['Sensitivity'],
-#                cm_frame$byClass['Specificity'], cm_frame$byClass['Precision'], cm_frame$byClass['Recall'], cm_frame$byClass['F1'], auc_val)
-#   names(stat_vec) = c('Frac', 'Run', 'Algorithm', 'Dataset', 'Accuracy', 'Bal.Accuracy', 'Sensitivity', 'Specificity', 'Precision', 'Recall', 'F1', 'AUC')
-#   all_stats[[1]][[all_stats[[2]]]] = stat_vec
-#   all_stats[[2]] = all_stats[[2]] + 1
-#   return(all_stats)
-# }
-
 # Load Data -- LUM A vs. LUM B
-# load('/Users/ncilfone/Documents/Data_Files/TCGA/lumAB/data5_lumAB_all.RData')
-train_data = read_feather('~/Dropbox-Work/Wuxi/Data/data5_lumAB_train_normalized.feather')
-test_data = read_feather('~/Dropbox-Work/Wuxi/Data/data5_lumAB_test_normalized.feather')
+train_data = read_feather('data5_lumAB_train_normalized.feather')
+test_data = read_feather('data5_lumAB_test_normalized.feather')
 all_data = rbind(train_data,test_data)
 
 # block_path = '/Users/ncilfone/Documents/Projects/quantum_stuff/data/classical_comp/results/'
-block_path = '~/Dropbox-Work/Wuxi/Results/'
+block_path = 'Results/'
 all_labels = all_data[,1]
 y_data = all_labels[[1]]
 y_data = gsub(" ", "_", y_data, fixed = TRUE)

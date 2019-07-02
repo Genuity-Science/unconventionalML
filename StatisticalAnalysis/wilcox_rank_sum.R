@@ -1,58 +1,12 @@
+# Script to run Nonparametric Wilcoxon signed-rank tests 
+# Author: Sharvari Gujja
+
 library("dplyr")
 library("ggpubr")
 
 rm(list=ls())
 gc()
 options(stringsAsFactors = FALSE)
-
-# write.csv(all_info,"qMl_classic_dw_sa_ibm_rand_new.csv",quote=F,sep=",",row.names=F)
-#qml <- read.csv("/Users/sgujja/OneDrive - NextCODE Health/Omar_Code/quantumMachineLearning - Documents/Cuts/qMl_classic_dw_sa_ibm_rand_new.csv", sep=",",header=T)
-qml <- all_info # file from running plot_bootstrap_resamples_stacked.R
-
-d <- data.frame()
-
-for(i in c("brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB") )
-{
-  for (j in c("Field","lasso","nb","Random","rf","ridge","sa","svm"))
-  {
-    for (k in c("tst_acc","tst_bacc","tst_auroc","tst_F1"))
-    {
-      qml.sub <- qml[qml$dataset %in% c(i) & qml$method %in% c("dw", j),]
-      qml.sub <-  as.data.frame(qml.sub[,c("method",k)])
-      names(qml.sub) <- c("group", "metric")
-      
-      #Compute summary statistics by groups:
-      # group_by(qml.sub, group) %>%
-      #   summarise(
-      #     count = n(),
-      #     median = median(metric, na.rm = TRUE),
-      #     IQR = IQR(metric, na.rm = TRUE)
-      #   )
-      
-      # Plot weight by group and color by group
-      # show(ggboxplot(qml.sub, x = "group", y = "metric", 
-      #           color = "group", palette = c("#00AFBB", "#E7B800"),
-      #           order = c("dw", i),
-      #           ylab = "Metric", xlab = "Groups"))
-      
-      
-      # Wilcoxin Rank Sum Test
-      # Compute paired Wilcoxon-test 
-      #res <- wilcox.test(metric ~ group, data = qml.sub, paired = TRUE)
-      # Compute unpaired Wilcoxon-test 
-      res <- wilcox.test(metric ~ group, data = qml.sub, paired = FALSE)
-      #res
-      pval <- res$p.value
-      padj <-p.adjust(res$p.value, method = "bonferroni", n = 8)
-      info <- c(i,k,paste0("dave.vs.",j),pval, padj)
-      d <- rbind(d,info)
-      names(d) <- c("dataset", "metric","comparison", "pval", "padj")
-  }
-  saveRDS(d,paste0(i,"_",k,"_wilcox_paired.rds"))
-}
-}
-write.csv(d,"binomial_wilcoxon_unpaired.csv", quote = F, row.names = F)
-
 
 
 ###########################

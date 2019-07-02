@@ -1,3 +1,4 @@
+# Script to run classical classification algorithms on top 44 genes of PC1 for LumA vs. LumB binomial comparison.
 rm(list = ls())
 gc()
 library(feather)
@@ -22,13 +23,12 @@ intervalStart <- Sys.time()
 
 
 # Load Data -- LUM A vs. LUM B
-# load('/Users/ncilfone/Documents/Data_Files/TCGA/lumAB/data5_lumAB_all.RData')
-train_data = read_feather('../rawdata/data5_lumAB_train_normalized.feather')
-test_data = read_feather('../rawdata/data5_lumAB_test_normalized.feather')
+train_data = read_feather('data5_lumAB_train_normalized.feather')
+test_data = read_feather('data5_lumAB_test_normalized.feather')
 all_data = rbind(train_data,test_data)
 
 # read top 44 gene from PC1 on train data
-top44genes <- read.table("~/Downloads/quantum/pc1_top_44_genes_ids.txt", header=F)
+top44genes <- read.table("pc1_top_44_genes_ids.txt", header=F)
 cols2sel <- c(as.character(top44genes$V1))
 
 # block_path = '/Users/ncilfone/Documents/Projects/quantum_stuff/data/classical_comp/results/'
@@ -59,7 +59,7 @@ methods = c('glmnet','glmnet','svmLinear2','rf','nb') #('xgbLinear','svmRadial',
 method_disp = c('lasso','ridge','svm','rf','nb')
 lassoGrid=expand.grid(.alpha=1, .lambda=seq(0, 100, by = 0.1))
 ridgeGrid=expand.grid(.alpha=0, .lambda=seq(0, 100, by = 0.1))
-rfGrid=expand.grid(.mtry=c(1:44))#, .ntree=c(1000, 1500, 2000))
+rfGrid=expand.grid(.mtry=c(1:44))
 tuneGrids=list(lassoGrid,ridgeGrid,NULL,rfGrid,NULL)
 cvCtrl = trainControl(method = "cv", number = 10,classProbs = TRUE,allowParallel = TRUE)
 
@@ -98,10 +98,7 @@ cm_train_list = list()
 cm_test_list = list()
 response_train_list = list()
 response_test_list = list()
-#mat = readMat("~/Dropbox-Work/Wuxi/Results/2018-10-10_LUMAB_ALL_MULTICUT/data_resamples.mat")
-splits = as.matrix(read.table("Richard_code/lumAB_bootstrap_resamples.txt"))
-#traindatas = unlist(mat$traindatas,recursive=FALSE)
-#testdatas = unlist(mat$testdatas,recursive=FALSE)
+splits = as.matrix(read.table("bootstrap_resamples/lumAB_bootstrap_resamples.txt"))
 
 # Run through # of Splits
 pc1_top44genes_100cuts <- list()
@@ -131,22 +128,6 @@ for (j in 1:n_splits) {
   x_test = sweep(data_test, 2, train_mean, "-")
   x_test = sweep(x_test, 2, train_sd, "/")
   
-  cat("\n---------------\nPrincipal Components...\n---------------\n")
-  # PC Model
-  #pc_model = flashpca(as.matrix(x_train), ndim = n_pc, stand = "sd", do_loadings = TRUE)
-  # PCs of All Data
-  # Train
-  #pc_train = pc_model$projection
-  # Test
-  #pc_test = project(as.matrix(x_test), loadings = pc_model$loadings,  orig_mean = pc_model$center, orig_sd = pc_model$scale)
-  #pc_test = pc_test$projection
-  
-  # get top 44 genes of PC1
-  #ord=order(abs(pc_model$loadings[,1]), decreasing =TRUE)[1:44] #rankings of top n_genes from PC1
-  #x_train_pc1 = x_train[,ord]
-  #print(colnames(x_train_pc1))
-  #pc1_top44genes_100cuts[[j]] <- colnames(x_train_pc1)
-  
   # get subset for train and test
   x_train_44genes <- x_train %>% select(cols2sel)
   x_train_44genes <- setcolorder(x_train_44genes,cols2sel)
@@ -164,9 +145,6 @@ for (j in 1:n_splits) {
   z_x_test_44genes = sweep(x_test_44genes, 2, x_train_44genes_mean, "-")
   z_x_test_44genes = sweep(z_x_test_44genes, 2, x_train_44genes_sd, "/")
   
-  # Rename Cols
-  #colnames(z_pc_train) = paste('PC_', seq(1,ncol(z_pc_train)), sep = '')
-  #colnames(z_pc_test) = paste('PC_', seq(1,ncol(z_pc_test)), sep = '')
   
   # Fix Data Types
   y_train = as.factor(y_train)
@@ -183,23 +161,11 @@ for (j in 1:n_splits) {
     # save the model
     save_name = paste(save_dir, 'glm_run', '_', as.character(j), '_' , method_disp[[m]], sep = '')
     save(fit, file=save_name)
-    
-    # Grab Coefficients
-    # coef_results = coef(fit, s = "lambda.min")
-    # nz_idx = coef_results@i[coef_results@i != 0]
-    # nz_idx = nz_idx + 1
-    # nz_modules = coef_results@Dimnames[[1]][nz_idx]
-    # nz_modules = nz_modules[order(abs(coef_results@x[-1]), decreasing = TRUE)]
-    # gene_list[[i]] = nz_modules
-    # save_name = paste(save_dir, 'features_run', '_', as.character(j), '_' , method_disp[[m]], sep = '')
-    # write.table(nz_modules, file = save_name, row.names = FALSE, col.names = FALSE, quote = FALSE, sep = '\t')
+ 
     
     fit_var_imp = varImp(fit)
     fit_var_imp = as.data.frame(fit_var_imp$importance) #[,1])
     colnames(fit_var_imp) <-  paste('features_run', '_', as.character(j), '_' , method_disp[[m]], sep = '')
-    #names(fit_var_imp) = colnames(z_x_train_44genes)
-    #fit_var_imp = names(sort(fit_var_imp, decreasing = TRUE))
-    #gene_list[[j]] = fit_var_imp
     save_name = paste(save_dir, 'features_run', '_', as.character(j), '_' , method_disp[[m]], sep = '')
     write.table(fit_var_imp, file = save_name, row.names = TRUE, col.names = TRUE, quote = FALSE, sep = '\t')
     
@@ -255,9 +221,6 @@ intervalEnd <- Sys.time()
 paste("100 iterations of lumAB data took",intervalEnd - intervalStart,attr(intervalEnd - intervalStart,"units"))
 
 # average scores for variable importance for 100 runs
-basedir <- "~/OneDrive - NextCODE Health/Omar_Code/quantumMachineLearning - Documents/Cuts/"
-save_dir="lumAB_multicut_multirun/2019_05_01_LUMAB_ALL_MULTICUT"
-setwd(paste0(basedir,save_dir))
 methods = c('glmnet','glmnet','svmLinear2','rf','nb') #('xgbLinear','svmRadial','svmLinear')
 method_disp = c('lasso','ridge','svm','rf','nb')
 for (m in 1:length(methods)) {
@@ -282,7 +245,7 @@ for (m in 1:length(methods)) {
 
 
 # combine rankings for classical and quantum
-setwd("~/OneDrive - NextCODE Health/Omar_Code/quantumMachineLearning - Documents/Cuts/lumAB_multicut_multirun/2019_05_01_LUMAB_ALL_MULTICUT")
+setwd("./lumAB_multicut_multirun/2019_05_01_LUMAB_ALL_MULTICUT")
 cl_files <- list.files("./", pattern="features_runs_avg_100*")
 qn_files <- list.files("./", pattern="*ranking*") #quantum and pc1 loadings
 

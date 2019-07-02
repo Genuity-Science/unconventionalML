@@ -1,1 +1,4 @@
 Scripts to run classical algorithms - LASSO, Ridge, Random Forest, Naive Bayes, and Support Vector Machine.
+
+The data files for 'bootstrap_resamples' are at:
+https://nextcodehealth.sharepoint.com/:f:/s/quantumMachineLearning/EgjszDv1cLxMolz5klaGVIsBNGNFq_fr3TthVxXZ0QG-Mg?e=2ReUj4

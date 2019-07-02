@@ -10,3 +10,6 @@ Output metrics are saved to "*multirun_save.RDS"
 lum_ab_bootstrap_resamples.R
 Script that calculates various metrics for the LumA vs. LumB binomial comparison, for each of the generated bootstrap resamples.
 Output metrics are saved to "*multirun_save.RDS"
+
+
+Script to run classical classification algorithms on top 44 genes of PC1 for LumA vs. LumB binomial comparison.

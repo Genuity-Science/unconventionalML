@@ -1,3 +1,4 @@
+# Script that calculates various metrics for the binomial comparisons - "brcaMatchedTN","ERpn","kirckirp","luadlusc", for each of the generated bootstrap resamples.
 rm(list = ls())
 gc()
 library(feather)
@@ -18,9 +19,9 @@ Sys.setenv(TZ="US/Eastern")
 intervalStart <- Sys.time()
 
 # Load Data -- for all five binomial comparisons
-files=c("brcaMatchedTN","ERpn","kirckirp","luadlusc" ,"lumAB")
-positive_classes = c("tumor","Positive","kirc","luad","Luminal_A")
-classes_levels = list(c("normal","tumor"),c("Negative","Positive"),c("kirp","kirc"),c("lusc","luad"),c("Luminal_A","Luminal_B"))
+files=c("brcaMatchedTN","ERpn","kirckirp","luadlusc") # ,"lumAB")
+positive_classes = c("tumor","Positive","kirc","luad") #,"Luminal_A")
+classes_levels = list(c("normal","tumor"),c("Negative","Positive"),c("kirp","kirc"),c("lusc","luad")) #,c("Luminal_A","Luminal_B")
 
 # methods for five classical algorithms using Caret package
 methods = c('glmnet','glmnet','svmLinear2','rf','nb') 
@@ -28,7 +29,7 @@ method_disp = c('lasso','ridge','svm','rf','nb')
 # define grid parameters
 lassoGrid=expand.grid(.alpha=1, .lambda=seq(0, 100, by = 0.1))
 ridgeGrid=expand.grid(.alpha=0, .lambda=seq(0, 100, by = 0.1))
-rfGrid=expand.grid(.mtry=c(1:44))#, .ntree=c(1000, 1500, 2000))
+rfGrid=expand.grid(.mtry=c(1:44))
 tuneGrids=list(lassoGrid,ridgeGrid,NULL,rfGrid,NULL)
 # control parameters for train
 cvCtrl = trainControl(method = "cv", number = 10,classProbs = TRUE, allowParallel = TRUE)

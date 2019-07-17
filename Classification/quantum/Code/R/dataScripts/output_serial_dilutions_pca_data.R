@@ -48,17 +48,18 @@ predict_correct_pca = function(pc_res, x, n_pc) {
 }
 
 # load data 
-train_data = read_feather("/home/richard/Dropbox-Work/Wuxi/Data/data5_lumAB_train_normalized.feather")
-test_data = read_feather("/home/richard/Dropbox-Work/Wuxi/Data/data5_lumAB_test_normalized.feather")
+d = 'ERpn' #lumAB, ERpn, luadlusc
+train_data = read_feather(paste("/home/richard/Dropbox-Work/Wuxi/Data/data5_", d, "_train_normalized.feather",sep=""))
+test_data = read_feather(paste("/home/richard/Dropbox-Work/Wuxi/Data/data5_", d, "_test_normalized.feather",sep=""))
 
 # relabel factors
 train_labels = as.factor(gsub(" ","_",train_data$cancer,fixed=TRUE))
 test_labels = as.factor(gsub(" ","_",test_data$cancer,fixed=TRUE))
 train_data = train_data[,-1]
 test_data = test_data[,-1]
-block_path = '/home/richard/Dropbox-Work/Wuxi/Data/lumAB_splits/'
-run_name = "_LUMAB"
-pos_class = "Luminal_A"
+block_path = paste('/home/richard/Dropbox-Work/Wuxi/Data/', d, '_splits/',sep='')
+dir.create(block_path)
+pos_class = "Luminal_A" #Luminal_A (lumAB); Positive (ERpn) ; luad (luadlusc) 
 
 # Run name
 Sys.chmod(block_path, "777")
@@ -69,11 +70,10 @@ n_pc = 44
 n_genes = 44
 n_splits = 50
 # Split Frac Ranges
-# low_fracs = seq(0.02, 0.2, 0.02)
-# high_fracs = seq(0.30, 0.95, 0.05)
-# all_fracs = c(rev(high_fracs), rev(low_fracs))
-# all_fracs = c(0.80, 0.60, 0.30)
-all_fracs = 0.25
+low_fracs = seq(0.02, 0.2, 0.02)
+high_fracs = seq(0.30, 0.95, 0.05)
+all_fracs = c(rev(high_fracs), rev(low_fracs))
+
 # Set Min Threshold basd on PCs
 min_frac = (n_pc + 1) / nrow(train_data)
 # Remove those that eclipse the min threshold
@@ -144,45 +144,44 @@ for (i in length(all_fracs):length(all_fracs)) {
     colnames(z_pc_test) = paste('PC_', seq(1,ncol(z_pc_test)), sep = '')
     colnames(z_pc_valid) = paste('PC_', seq(1,ncol(z_pc_valid)), sep = '')
     colnames(z_pc_exp_test) = paste('PC_', seq(1,ncol(z_pc_exp_test)), sep = '')
-    z_pc_exp_test = cbind(class_exp_test-1,z_pc_exp_test)
-    z_pc_train = cbind(as.numeric(class_train)-1,z_pc_train)
-    z_pc_test = cbind(as.numeric(class_test)-1,z_pc_test)
-    z_pc_valid = cbind(as.numeric(class_valid)-1,z_pc_valid)
+    z_pc_exp_test = cbind(class_exp_test==pos_class,z_pc_exp_test)
+    z_pc_train = cbind(class_train==pos_class,z_pc_train)
+    z_pc_test = cbind(class_test==pos_class,z_pc_test)
+    z_pc_valid = cbind(class_valid==pos_class,z_pc_valid)
     writeMat(paste(save_dir,"resample_", as.character(j), "_data.mat", sep=''),
               testdata=as.matrix(z_pc_test),valdata = data.matrix(z_pc_valid),
               traindata=as.matrix(z_pc_train),exptest=as.matrix(z_pc_exp_test))
-    
-    pc = flashpca(as.matrix(x_train), ndim = 1, stand = "sd", do_loadings = TRUE)
-    ord=order(abs(pc$loadings[,1]),decreasing = TRUE)[1:n_genes] #rankings of top n_genes from PC1
-    X_train_j=x_train[,ord]
-    X_test_j=x_test[,ord]
-    X_valid_j=x_valid[,ord]
-    
-    cat("Normalize ... ")
-    X_train_j_mean = apply(as.data.frame(X_train_j), 2, mean)
-    X_train_j_sd = apply(X_train_j, 2, sd)
-    # Train
-    X_train_j_z = sweep(X_train_j, 2, X_train_j_mean, "-")
-    X_train_j_z = sweep(X_train_j_z, 2, X_train_j_sd, "/")
-    # Test
-    X_test_j_z = sweep(X_test_j, 2, X_train_j_mean, "-")
-    X_test_j_z = sweep(X_test_j_z, 2, X_train_j_sd, "/")
-    # Valid
-    X_valid_j_z = sweep(X_valid_j, 2, X_train_j_mean, "-")
-    X_valid_j_z = sweep(X_valid_j_z, 2, X_train_j_sd, "/")
-    # Exp_test: Combo Valid + Test
-    X_exp_test_j_z = rbind(X_test_j_z, X_valid_j_z)    
-    
-    z_train = cbind(as.numeric(class_train)-1,X_train_j_z)
-    z_test = cbind(as.numeric(class_test)-1,X_test_j_z)
-    z_valid = cbind(as.numeric(class_valid)-1,X_valid_j_z)
-    z_exp_test = cbind(class_exp_test-1,X_exp_test_j_z)
-    
-    writeMat(paste(save_dir,"pc1_gene_resample_", as.character(j), "_data.mat", sep=''),
-              testdata=as.matrix(z_test),valdata = data.matrix(z_valid),
-              traindata=as.matrix(z_train),exptest=as.matrix(z_exp_test))
-    
-    #    write_feather(z_pc_train,paste(save_dir, "resample_", as.character(j), "train_wlabels.feather", sep=''))
-#    write_feather(z_pc_exp_test,paste(save_dir, "resample_", as.character(j), "test_wlabels.feather", sep=''))
+
+#    Uncomment below to output the top genes based on pc1
+#    pc = flashpca(as.matrix(x_train), ndim = 1, stand = "sd", do_loadings = TRUE)
+#    ord=order(abs(pc$loadings[,1]),decreasing = TRUE)[1:n_genes] #rankings of top n_genes from PC1
+#    X_train_j=x_train[,ord]
+#    X_test_j=x_test[,ord]
+#    X_valid_j=x_valid[,ord]
+#    
+#    cat("Normalize ... ")
+#    X_train_j_mean = apply(as.data.frame(X_train_j), 2, mean)
+#    X_train_j_sd = apply(X_train_j, 2, sd)
+#    # Train
+#    X_train_j_z = sweep(X_train_j, 2, X_train_j_mean, "-")
+#    X_train_j_z = sweep(X_train_j_z, 2, X_train_j_sd, "/")
+#    # Test
+#    X_test_j_z = sweep(X_test_j, 2, X_train_j_mean, "-")
+#    X_test_j_z = sweep(X_test_j_z, 2, X_train_j_sd, "/")
+#    # Valid
+#    X_valid_j_z = sweep(X_valid_j, 2, X_train_j_mean, "-")
+#    X_valid_j_z = sweep(X_valid_j_z, 2, X_train_j_sd, "/")
+#    # Exp_test: Combo Valid + Test
+#    X_exp_test_j_z = rbind(X_test_j_z, X_valid_j_z)    
+#    
+#    z_train = cbind(as.numeric(class_train)-1,X_train_j_z)
+#    z_test = cbind(as.numeric(class_test)-1,X_test_j_z)
+#    z_valid = cbind(as.numeric(class_valid)-1,X_valid_j_z)
+#    z_exp_test = cbind(class_exp_test-1,X_exp_test_j_z)
+#    
+#    writeMat(paste(save_dir,"pc1_gene_resample_", as.character(j), "_data.mat", sep=''),
+#              testdata=as.matrix(z_test),valdata = data.matrix(z_valid),
+#              traindata=as.matrix(z_train),exptest=as.matrix(z_exp_test))
+#    
     }
  }

@@ -1,6 +1,7 @@
-# Output RDS file with annealing-type metrics for bootstrap resamples. Run after 
-# doing analysis code in Matlab. Used to be consistent in how the performance
-# metrics are calculated for the classical algorithms. Saves as .RDS file
+# Output RDS file with annealing-type metrics for incremental decrease of data 
+# for multinomial data. Run after doing analysis code in Matlab. Used to be consistent 
+# in how the performance metrics are calculated for the classical algorithms. 
+# Saves as .RDS file
 # Author: Richard Li
 
 rm(list=ls())
@@ -20,13 +21,10 @@ d = '6cancer'
 meth = 'sa' # 'dw','sa', 'field', or 'rand'.
 sfx = '_nsols20_ntotsols1000_b1_0d3'
 
-#all_fracs = seq(0.02,0.2,0.02)
-#all_fracs = seq(0.25,0.95,0.05)
+# specify the fractions of data to use 
 all_fracs = c(seq(0.02,0.2,0.02),seq(0.25,0.95,0.05))
-#all_fracs = seq(0.05,0.95,0.05)
-# load data
+
 info_list = list()
-# define positive classes and levels
 pos_class=NULL
 classes = c("lihc","brca","lgg","coad",'kidn','lung')
 
@@ -102,8 +100,6 @@ for (i in 1:length(all_fracs)) {
       roc.val = auc(multcap(response = class_val, predicted = data.matrix(response_val)))
       roc.exptest = auc(multcap(response = class_exptest, predicted = data.matrix(response_exptest)))
   
-#      info[j,'dataset'] = '6cancer'
-#      info[j,'method'] = meth
       info[j,'frac'] = all_fracs[[i]]
       info[j,'tr_acc']=cm_train$overall["Accuracy"]
       info[j,'tst_acc']=cm_test$overall["Accuracy"]
@@ -138,4 +134,4 @@ for (i in 1:length(all_fracs)) {
     }
     info_list[[i]] = info
 }
-saveRDS(info_list,paste(base_dir,d,"_split_pca_performance_",meth,sfx,"_2.RDS",sep=""))
+saveRDS(info_list,paste(base_dir,d,"_split_pca_performance_",meth,sfx,".RDS",sep=""))

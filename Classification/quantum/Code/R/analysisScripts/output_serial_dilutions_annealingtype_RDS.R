@@ -1,4 +1,4 @@
-# Output statistics for lumAB serial dilutions for annealing-type algorithms.
+# Output statistics for incremental decrease for annealing-type algorithms.
 
 rm(list = ls())
 gc()
@@ -9,6 +9,8 @@ library(e1071)
 #library(MLmetrics)
 library(caret)
 
+# specify the name of the dataset. Different datasets have different fractions
+# depending on the size of the dataset 
 d = "ERpn"
 
 if (d == "luadlusc") {
@@ -96,21 +98,6 @@ for (i in 1:length(all_fracs)) {
     roc.val = HandTill2001::auc(bincap(response = y_val, predicted = 1-response_val,true=pos))
     roc.exptest = HandTill2001::auc(bincap(response = y_exptest, predicted = 1-response_exptest,true=pos))
     
-    # AUPRC
-    train_df = data.frame(y_train,pred_train,1-response_train,response_train)
-    colnames(train_df) = c("obs","pred",classes)
-    test_df = data.frame(y_test,pred_test,1-response_test,response_test)
-    colnames(test_df) = c("obs","pred",classes)
-    val_df = data.frame(y_val,pred_val,1-response_val,response_val)
-    colnames(val_df) = c("obs","pred",classes)
-    exptest_df = data.frame(y_exptest,pred_exptest,1-response_exptest,response_exptest)
-    colnames(exptest_df) = c("obs","pred",classes)
-    
-    train_PRS = prSummary(train_df,lev=classes)
-    test_PRS = prSummary(test_df,lev=classes)
-    val_PRS = prSummary(val_df,lev=classes)
-    exptest_PRS = prSummary(exptest_df,lev=classes)
-
     # Export some summary data    
     info[n,'frac']=all_fracs[i]
     info[n,'tr_acc']=cm_train$overall["Accuracy"]
@@ -143,10 +130,6 @@ for (i in 1:length(all_fracs)) {
     info[n,'val_auroc']=roc.val
     info[n,'exptst_auroc']=roc.exptest
     
-    info[n,'tr_auprc']=train_PRS["AUC"]
-    info[n,'tst_auprc']=test_PRS["AUC"]
-    info[n,'val_auprc']=val_PRS["AUC"]
-    info[n,'exptst_auprc']=exptest_PRS["AUC"]
     n=n+1
   }
   info_list[[i]] = info

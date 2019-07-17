@@ -1,3 +1,10 @@
+'''
+
+Script to plot results for 6-cancer multinomial data. 
+from PC1. Compares classical, DW, SA, random, field results.
+
+'''
+
 rm(list=ls())
 gc()
 options(stringsAsFactors = FALSE)
@@ -117,7 +124,6 @@ tmp_m = matrix(bacc_order$newo,nrow=nmeth)
 group_order = as.vector(tmp_m[,rep(1:nleg,each=nmetric)])
 tmp_df$bacc_order = group_order
 
-#ungroup tmp_df??
 tmp_df = tmp_df %>% ungroup() %>% group_by(dataset,metric) %>% arrange(dataset,bacc_order) %>%
   unite("dataset_baccorder",dataset,bacc_order,sep="_",remove=FALSE) %>% ungroup()
 

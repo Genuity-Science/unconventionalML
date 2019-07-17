@@ -74,7 +74,6 @@ n_splits = 50
 # low_fracs = seq(0.02, 0.2, 0.02)
 # high_fracs = seq(0.30, 0.95, 0.05)
 # all_fracs = c(rev(high_fracs), rev(low_fracs))
-# all_fracs = c(0.80, 0.60, 0.30)
 all_fracs = seq(0.05,0.95,0.05)
 # Set Min Threshold basd on PCs
 min_frac = (n_pc + 1) / nrow(train_data)
@@ -185,8 +184,5 @@ for (i in 1:length(all_fracs)) {
     writeMat(paste(save_dir,"pc1_gene_resample_", as.character(j), "_data.mat", sep=''),
               testdata=as.matrix(z_test),valdata = data.matrix(z_valid),
               traindata=as.matrix(z_train),exptest=as.matrix(z_exp_test))
-    
-    #    write_feather(z_pc_train,paste(save_dir, "resample_", as.character(j), "train_wlabels.feather", sep=''))
-#    write_feather(z_pc_exp_test,paste(save_dir, "resample_", as.character(j), "test_wlabels.feather", sep=''))
     }
  }

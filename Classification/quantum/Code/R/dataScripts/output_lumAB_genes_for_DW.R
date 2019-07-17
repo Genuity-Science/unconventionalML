@@ -1,4 +1,4 @@
-# Output .mat files with resample data for DW. 
+# Output .mat files with resample data with genes from PC1. 
 
 library(feather)
 library(R.matlab)

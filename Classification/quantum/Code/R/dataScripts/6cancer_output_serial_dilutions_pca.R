@@ -60,8 +60,6 @@ test_data = test_data[,-1]
 block_path = '~/Dropbox-Work/Wuxi/Data/6cancer_splits/'
 dir.create(block_path)
 
-
-# n_pc = 44
 n_pc = 13
 n_splits = 50
 
@@ -70,79 +68,63 @@ n_splits = 50
 #all_fracs = c(low_fracs,high_fracs)
 all_fracs = seq(0.05,0.95,0.05)
 
-#min_frac = (n_pc + 1) / nrow(train_data)
-# # Remove those that eclipse the min threshold
-#rm_min_frac = which(all_fracs < min_frac)
-#if (length(rm_min_frac) > 0) {
-#  all_fracs = all_fracs[-rm_min_frac]
-#}
+# Uncomment below if running for the first time and will save the list of the splits
+# splits = createDataPartition(train_labels, times = n_splits, p = all_fracs[i])
+# split_name = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'.txt',sep="")
+# write.table(split_name,x=as.data.frame(splits),quote=F,row.names=F,sep='\t')
 
-#for (i in 1:length(all_fracs)) {
-  cat(paste('\n', format(Sys.time(), "%H:%M"), '\n', sep=""))
-  
-  # Split them up - if doing for the first time
-  # splits = createDataPartition(train_labels, times = n_splits, p = all_fracs[i])
-  # # Save the splits
-  # cat("\n---------------\nSave Splits...\n---------------\n")
-   save_dir = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'_dir/',sep="")
-   split_name = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'.txt',sep="")
-  # write.table(split_name,x=as.data.frame(splits),quote=F,row.names=F,sep='\t')
-  # 
-  splits=read.table(split_name,header=TRUE)
-  
-  # Run through # of Splits
-#  for (j in 1:n_splits) {
-    # load(split_name)
-    
-    cat(paste("\nFrac ", as.character(all_fracs[i]), " - Split ", as.character(j) ,"\n", sep=''))
-    # Split Labels
-    class_train = train_labels[splits[[j]]]
-    class_test = train_labels[-splits[[j]]]
-    class_valid = test_labels
-    class_exp_test = c(class_test, class_valid)
-    # Split Data
-    data_train = train_data[splits[[j]],]
-    data_test = train_data[-splits[[j]],]
-    # Remove Zero Variance
-    train_var = apply(data_train, 2, sd)
-    no_var_idx = which(train_var == 0.0)
-    if (length(no_var_idx) > 0) {
-      data_train = data_train[, -no_var_idx]
-      data_test = data_test[, -no_var_idx]
-      data_valid = test_data[, -no_var_idx]
-    }
-    # Normalize All Data
-    cat("\n---------------\nNormalize Data...\n---------------\n")
-    x_train = data_train
-    x_test = data_test
-    x_valid = data_valid
-    # Combo Valid + Test
-    x_exp_test = rbind(x_test, x_valid)
-    
-    cat("\n---------------\nPrincipal Components...\n---------------\n")
-    # PC Model
-    pc_res = switch_pca(x_train, n_pc = n_pc)
-    # Train
-    z_pc_train = predict_correct_pca(pc_res, x_train, n_pc)
-    # Test
-    z_pc_test = predict_correct_pca(pc_res, x_test, n_pc)
-    # Valid
-    z_pc_valid = predict_correct_pca(pc_res, x_valid, n_pc)
-    # Exp Test
-    z_pc_exp_test = predict_correct_pca(pc_res, x_exp_test, n_pc)
-    
-    # Rename Cols
-    colnames(z_pc_train) = paste('PC_', seq(1,ncol(z_pc_train)), sep = '')
-    colnames(z_pc_test) = paste('PC_', seq(1,ncol(z_pc_test)), sep = '')
-    colnames(z_pc_valid) = paste('PC_', seq(1,ncol(z_pc_valid)), sep = '')
-    colnames(z_pc_exp_test) = paste('PC_', seq(1,ncol(z_pc_exp_test)), sep = '')
-    z_pc_exp_test = cbind(class_exp_test-1,z_pc_exp_test)
-    z_pc_train = cbind(as.numeric(class_train)-1,z_pc_train)
-    z_pc_test = cbind(as.numeric(class_test)-1,z_pc_test)
-    z_pc_valid = cbind(as.numeric(class_valid)-1,z_pc_valid)
-    writeMat(paste(save_dir,"resample_", as.character(j), "_data.mat", sep=''),
-             testdata=as.matrix(z_pc_test),valdata = data.matrix(z_pc_valid),
-             traindata=as.matrix(z_pc_train),exptest=as.matrix(z_pc_exp_test))
-    gc()
-#  }
-#}
+cat(paste('\n', format(Sys.time(), "%H:%M"), '\n', sep=""))
+
+save_dir = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'_dir/',sep="")
+split_name = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'.txt',sep="")
+splits=read.table(split_name,header=TRUE)
+
+cat(paste("\nFrac ", as.character(all_fracs[i]), " - Split ", as.character(j) ,"\n", sep=''))
+# Split Labels
+class_train = train_labels[splits[[j]]]
+class_test = train_labels[-splits[[j]]]
+class_valid = test_labels
+class_exp_test = c(class_test, class_valid)
+# Split Data
+data_train = train_data[splits[[j]],]
+data_test = train_data[-splits[[j]],]
+# Remove Zero Variance
+train_var = apply(data_train, 2, sd)
+no_var_idx = which(train_var == 0.0)
+if (length(no_var_idx) > 0) {
+  data_train = data_train[, -no_var_idx]
+  data_test = data_test[, -no_var_idx]
+  data_valid = test_data[, -no_var_idx]
+}
+# Normalize All Data
+cat("\n---------------\nNormalize Data...\n---------------\n")
+x_train = data_train
+x_test = data_test
+x_valid = data_valid
+# Combo Valid + Test
+x_exp_test = rbind(x_test, x_valid)
+
+cat("\n---------------\nPrincipal Components...\n---------------\n")
+# PC Model
+pc_res = switch_pca(x_train, n_pc = n_pc)
+# Train
+z_pc_train = predict_correct_pca(pc_res, x_train, n_pc)
+# Test
+z_pc_test = predict_correct_pca(pc_res, x_test, n_pc)
+# Valid
+z_pc_valid = predict_correct_pca(pc_res, x_valid, n_pc)
+# Exp Test
+z_pc_exp_test = predict_correct_pca(pc_res, x_exp_test, n_pc)
+
+# Rename Cols
+colnames(z_pc_train) = paste('PC_', seq(1,ncol(z_pc_train)), sep = '')
+colnames(z_pc_test) = paste('PC_', seq(1,ncol(z_pc_test)), sep = '')
+colnames(z_pc_valid) = paste('PC_', seq(1,ncol(z_pc_valid)), sep = '')
+colnames(z_pc_exp_test) = paste('PC_', seq(1,ncol(z_pc_exp_test)), sep = '')
+z_pc_exp_test = cbind(class_exp_test-1,z_pc_exp_test)
+z_pc_train = cbind(as.numeric(class_train)-1,z_pc_train)
+z_pc_test = cbind(as.numeric(class_test)-1,z_pc_test)
+z_pc_valid = cbind(as.numeric(class_valid)-1,z_pc_valid)
+writeMat(paste(save_dir,"resample_", as.character(j), "_data.mat", sep=''),
+         testdata=as.matrix(z_pc_test),valdata = data.matrix(z_pc_valid),
+         traindata=as.matrix(z_pc_train),exptest=as.matrix(z_pc_exp_test))

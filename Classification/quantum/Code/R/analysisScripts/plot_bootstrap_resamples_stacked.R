@@ -1,3 +1,10 @@
+'''
+
+Script to plot results from bootstrap resamples for binomial datasets. 
+Compares classical, DW, SA, random, field results.
+
+'''
+
 rm(list=ls())
 gc()
 options(stringsAsFactors = FALSE)
@@ -11,11 +18,12 @@ library(stringr)
 #library(grid)
 library(tidyr)
 
-#base_dir = '~/OneDrive - NextCODE Health/Omar_Code/quantumMachineLearning - Documents/Cuts/'
 base_dir = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
+# define datasets to loop over 
 datasets = c("brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB")
+
 # Classical info
 all_cl_info = data.frame()
 for (n in 1:length(datasets)) {
@@ -23,14 +31,12 @@ for (n in 1:length(datasets)) {
   l = readRDS(paste(base_dir, dataset,'_multirun_save.RDS',sep=""))
   info = l$info
   info$dataset = dataset
-  info$tr_auprc = NA
-  info$tst_auprc = NA
   all_cl_info = rbind(all_cl_info,info)
 }
 
 # simulated annealing info
+# insert name of appropriate rds file
 all_sa_info = readRDS(paste(base_dir,"bootstrap_resamples_sa_nsols_20_ntotsols_1000.RDS",sep=""))
-all_sa_info[c("tr_auprc","tst_auprc")] = 0
 
 # D-Wave info
 all_dw_info = readRDS(paste(base_dir,"bootstrap_resamples_dw_nsols_20.RDS",sep=""))
@@ -41,11 +47,10 @@ all_rand_info$method <- "Random"
 
 all_field_info = readRDS(paste(base_dir,"bootstrap_resamples_field.RDS",sep=""))
 all_field_info$method <- "Field"
-all_field_info[c("tr_auprc","tst_auprc")] = 0
 
 # Combining DW, Classical, SA, IBM sim results in one data frame
 all_info = rbind(all_cl_info,all_dw_info,all_sa_info,all_rand_info,all_field_info)
-all_info[is.na(all_info)] = 0 # Take care of some datasets having NA for train and test auprc
+all_info[is.na(all_info)] = 0 # substitute 0 for NA 
 mean_stats = aggregate(.~method+dataset,all_info,mean)
 sem_stats = aggregate(.~method+dataset,all_info,sem)
 n_cols = ncol(mean_stats)
@@ -99,7 +104,6 @@ tmp_m = matrix(bacc_order$newo,nrow=nmeth)
 group_order = as.vector(tmp_m[,rep(1:nleg,each=nmetric)])
 tmp_df$bacc_order = group_order
 
-#ungroup tmp_df??
 tmp_df = tmp_df %>% ungroup() %>% group_by(dataset,metric) %>% arrange(dataset,bacc_order) %>%
   unite("dataset_baccorder",dataset,bacc_order,sep="_",remove=FALSE) %>% ungroup() %>% rename(Metric=metric)
 

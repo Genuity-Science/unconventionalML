@@ -1,3 +1,8 @@
+# Run all classical methods for bootstrap resampling on 6cancer dataset. Bootstrap resampling 
+# refers to taking all the data and resampling 100 cuts of 80% training and
+# 20% testing.  
+# Author: Richard Li. Adapted from code by Nicholas Cilfone and Omar Gamel
+
 rm(list = ls())
 gc()
 library(feather)
@@ -10,12 +15,7 @@ library(R.matlab)
 
 Sys.setenv(TZ="US/Eastern")
 
-# Load Data -- LUM A vs. LUM B
-# load('/Users/ncilfone/Documents/Data_Files/TCGA/lumAB/data5_lumAB_all.RData')
-# files=c("brcaMatchedTN","ERpn","kirckirp","luadlusc") #"lumAB"
-# base_dir = '~/Dropbox-Work/Wuxi/Data/'
-# positive_classes = c("tumor","Positive","kirc","luad")
-# classes_levels = list(c("normal","tumor"),c("Negative","Positive"),c("kirp","kirc"),c("lusc","luad"))
+# Load Data 
 classes_levels = c("lihc","brca","lgg","coad",'kidn','lung')
 methods = c('glmnet','glmnet','svmLinear2','rf','nb') #('xgbLinear','svmRadial','svmLinear')
 method_disp = c('lasso','ridge','svm','rf','nb')
@@ -118,6 +118,7 @@ for (j in 1:n_splits) {
     n = n+1
 
   }
+  # save periodically, just in case
   if ( j %% 25 == 0) {
       save.image("tmp.RData")
   }

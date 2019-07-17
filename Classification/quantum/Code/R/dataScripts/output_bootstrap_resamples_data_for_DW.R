@@ -1,4 +1,5 @@
-# Output .mat files with resample data for DW. 
+# Output .mat files with resample data. Used for the binomial datasets.
+# Outputting for 6cancer dataset took too much memory; see output_6cancer_bootstrap_resamples_pca.R
 
 library(feather)
 library(R.matlab)

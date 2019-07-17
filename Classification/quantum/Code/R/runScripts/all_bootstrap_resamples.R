@@ -127,6 +127,7 @@ for (ii in 1:length(files)) {
       n = n+1
 
     }
+    # save periodically, just in case
     if ( j %% 25 == 0) {
         save.image("tmp.RData")
     }
@@ -134,5 +135,4 @@ for (ii in 1:length(files)) {
   save_vars = list(cm_train_list,cm_test_list,info,response_train_list,response_test_list)
   names(save_vars) = c("cm_train_list","cm_test_list","info","response_train_list","response_test_list")
   saveRDS(save_vars,paste(files[[ii]],"_bootstrap_resamples_save.RDS",sep=""))
-  # should consider outputting mean and standard deviation so that matches format used previously 
 }

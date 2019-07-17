@@ -1,5 +1,5 @@
-# Run classical algorithms for lumAB serial dilutions. For running on hpc.
-# Have two versions so can run faster 
+# Run classical algorithms for lumAB serial incremental decrease. For running on hpc.
+# Have two versions so can run them in parallel.
 
 rm(list = ls())
 gc()
@@ -14,7 +14,6 @@ library(R.matlab)
 Sys.setenv(TZ="US/Eastern")
 
 # Load Data -- LUM A vs. LUM B
-# load('/Users/ncilfone/Documents/Data_Files/TCGA/lumAB/data5_lumAB_all.RData')
 #base_dir = '/home/cmb-panasas2/liry/Wuxi/Data/lumAB_splits_gene/'
 base_dir = '/home/cmb-panasas2/liry/Wuxi/Data/lumAB_splits/'
 pos_class = "Luminal_A"

@@ -1,3 +1,8 @@
+''' 
+
+Script for generating plots for serial dilutions. 
+
+'''
 # File for making serial dilution plots in a grid of algorithm (rows) metric (columns)
 # supersedes lum_ab_plots.R
 # make sure the working directory is the home directory of this script
@@ -18,7 +23,7 @@ library(dplyr)
 # standard error of the mean
 std_err_mean = function(x) sd(x)/sqrt(length(x))
 
-# raw data for annealing type method output as list of matrics for each fraction
+# raw data for annealing-type method output as list of matrics for each fraction
 # combine ans extract relevant columns
 process_rds_file = function(dataraw,meth) {
   #initialize empty dataframe with same columns as dataraw
@@ -26,7 +31,7 @@ process_rds_file = function(dataraw,meth) {
   sem=data
   for (i in 1:length(dataraw)){
     data[i,]=colMeans(dataraw[[i]],na.rm=T)
-    sem[i,]=apply(dataraw[[i]],2,function(x){std_err_mean(x[!is.na(x)])})#,na.rm=T)
+    sem[i,]=apply(dataraw[[i]],2,function(x){std_err_mean(x[!is.na(x)])})
     sem[i,1]=dataraw[[i]]$frac[1]
   }
   
@@ -34,7 +39,6 @@ process_rds_file = function(dataraw,meth) {
   melt_sem=melt(sem,id=1,measure=2:ncol(data))
   # remove "tst" and "exptest" but keep "tr" and "val"
   melt_mean=melt_mean[grepl("tr_",melt_mean$variable) | grepl("val_",melt_mean$variable) ,] 
-  #melt=melt[! grepl("exptst",melt$variable) & ! grepl("val",melt$variable) ,] 
   melt_sem=melt_sem[grepl("tr_",melt_sem$variable) | grepl("val_",melt_sem$variable) ,] 
   rownames(melt_mean)=rownames(melt_sem)=c();
   colnames(melt_sem)[colnames(melt_sem)=='value']='sem'
@@ -59,6 +63,8 @@ process_rds_file = function(dataraw,meth) {
   return(df)
 }
 
+# function to read in data from classical file. Uses info as list from an output
+# script (e.g. bootstrap_resamples_output.rds)
 process_cl_file = function(info){
   new_info = melt(as.data.table(info), id=c("frac","method"), 
                   measure=patterns(Accuracy="_acc$",Bal.Accuracy="_bacc$",AUC="_auroc$",
@@ -95,8 +101,6 @@ base_dir = paste('/home/richard/Dropbox-Work/Wuxi/Results/', d, '_splits/preds_f
 load_path = paste('/home/richard/Dropbox-Work/Wuxi/Results/', d, '_splits/',sep='')
 
 # colors for plots
-full_plotcolors=c("lightblue","pink","blue","red")
-overf_plotcolors=full_plotcolors[3:4]
 summary_plotcolors = brewer.pal(9,"Paired")
 
 nruns = 50
@@ -109,7 +113,7 @@ cl_df = process_cl_file(cldataraw)
 
 # SA Results
 sfx = '_nsols20_ntotsols1000'
-safile=paste(d,"_split_pca_performance_sa",sfx,"_2.RDS",sep="") # for 6cancer, haave the _2.RDS
+safile=paste(d,"_split_pca_performance_sa",sfx,"_2.RDS",sep="") # for 6cancer, have the _2.RDS
 #safile=paste(d,"_split_pca_performance_sa",sfx,".RDS",sep="")
 sadataraw=readRDS(paste(base_dir,safile,sep='')) 
 sa_df = process_rds_file(sadataraw,"SA")
@@ -132,55 +136,19 @@ dw_sfx = '_cinit8_nsols20_ntotsols1000'
 dwfile=paste(d,"_split_pca_performance_dw",dw_sfx,"_2.RDS",sep='')
 dwdataraw=readRDS(paste(base_dir,dwfile,sep='')) 
 dw_df = process_rds_file(dwdataraw,"D-Wave")
-#dw_df = dw_df %>% filter(Frac!=0.18)
-
-# duplicate the dw rows 
-algorithmlist = unique(all_cl_df$Algorithm)
-nalgorithms = length(algorithmlist)
-ndw = nrow(dw_df)
-dw_fulldf = dw_df[rep(1:ndw,each=nalgorithms),] # multiple copies of dw_df, with algorithms inserted
-rownames(dw_fulldf) = c()
-dw_fulldf$Algorithm=NULL
-dw_fulldf = cbind(Algorithm=algorithmlist,dw_fulldf)
-dw_fulldf = dw_fulldf[colnames(all_cl_df)]
-
-# merge
-fulldata = rbind(all_cl_df,dw_fulldf)
-# fulldata=cl_df; full_plotcolors=c("lightblue","blue") # override: plot classic only
-fulldata$variable=droplevels(fulldata$variable)
 
 # -------------------- #
-# train and test metrics plot
-nrowplot = length(unique(fulldata$Algorithm)); ncolplot = nlevels(fulldata$variable)
-p_all = ggplot(data = fulldata, aes(x=Frac, y=value)) + 
-    geom_point(aes(colour = Dataset,shape=Dataset)) + 
-    geom_line(aes(colour = Dataset)) +
-    geom_errorbar(aes(colour = Dataset,linetype='dashed',width=0.015,
-                      ymin=(value-sem),ymax=(value+sem))) +
-    scale_color_manual(values=full_plotcolors) + 
-    facet_wrap(Algorithm~variable, nrow = nrowplot, ncol = ncolplot) +
-    theme_bw() + 
-    theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-    labs(x='Fraction of Training Data (80%)', y='Metric')
-
-ggsave(paste(load_path, 'figs/', 'all_classic_dw_sem_valid_', as.character(d), '.pdf', sep=''), 
-       plot = p_all, device = 'pdf', width = 25, height = 15)
-
-# -------------------- #
-# balanced accuracy test -summary plot
 dw_df['Algorithm']="D-Wave"
 all_data_df=rbind(all_cl_df,dw_df)
 
 drop_fracs = c(0.05,0.15)
-#drop_fracs = 0.06
-#drop_fracs = 0.18
 all_data_df$Frac = as.factor(all_data_df$Frac)
 all_data_df = all_data_df %>% subset(!(Frac %in% drop_fracs))
+
 frac = all_data_df$Frac
 all_data_df$Frac = as.numeric(levels(frac))[frac]
 
 #choose only Validation balanced accuracy, then remove columns that no longer vary
-#didn't build it from fulldata since it has duplicates
 baccdata = all_data_df %>% 
   subset(variable == "Bal.Accuracy" & Dataset == "Valid", select=-c(variable,Dataset)) %>%
   arrange(Algorithm,Frac)
@@ -211,65 +179,4 @@ all_bacc_pop = rbind(cl_bacc_pop,dw_bacc_pop)
 
 saveRDS(all_bacc_pop,paste(load_path,d,'_all_bacc_pop_data',dw_sfx,'.RDS',sep=''))
 saveRDS(all_bacc_stats_df,paste(load_path,d,'_bacc_stats',dw_sfx,'.RDS',sep=''))
-
-# -------------------- #
-# overfitting plot
-cl_overf= all_cl_df %>% 
-  filter(Frac != 1) %>% 
-  group_by(Frac, Algorithm,variable) %>% 
-  summarise(over=value[Dataset=="Train"]-value[Dataset=="Valid"],
-            sem=sqrt(sum(sem^2)),Dataset="Tr-Val") %>% 
-  as.data.frame()
-
-dw_overf= dw_fulldf %>% 
-  filter(Frac != 1) %>% 
-  group_by(Frac, Algorithm,variable) %>% 
-  summarise(over=value[Dataset=="Train"]-value[Dataset=="Valid"],
-            sem=sqrt(sum(sem^2)),Dataset="Tr-Val.DW") %>% 
-  as.data.frame()
-
-full_overf = rbind(cl_overf,dw_overf)
-nrowplot = length(unique(cl_overf$Algorithm))
-ncolplot = nlevels(fulldata$variable)
-
-p_overf = ggplot(data = full_overf, aes(x=Frac, y=over)) + geom_point(aes(colour = Dataset)) + 
-  geom_line(aes(colour = Dataset)) + 
-  geom_errorbar(aes(colour = Dataset,
-                    linetype='dashed',
-                    width=0.015,
-                    ymin=(over-sem),
-                    ymax=(over+sem))) + 
-  scale_color_manual(values=overf_plotcolors) + 
-  facet_wrap(Algorithm~variable, nrow = nrowplot, ncol = ncolplot) + 
-  theme_bw() + 
-  theme(panel.grid.major = element_blank(), 
-        panel.grid.minor = element_blank()) + 
-  labs(x='Fraction of Training Data (80%)', y='Metric Overfit (Train - Test)')
-
-ggsave(paste(load_path, 'figs/', 'all_classic_dw_overfit_', as.character(d), '.pdf', sep=''),
-       plot = p_overf, device = 'pdf', width = 25, height = 15)
-
-# -------------------- #
-# balanced accuracy overfitting - summary plot
-#choose only test balanced accuracy, then remove columns that no longer vary
-dw_overfbacc = dw_overf %>% 
-  subset(variable=="Bal.Accuracy" & Algorithm == "LASSO",select=-c(variable,Dataset))
-dw_overfbacc['Algorithm']="D-Wave"
-
-cl_overfbacc = cl_overf %>% 
-  subset(variable=="Bal.Accuracy",select=-c(variable,Dataset))
-
-overfbaccdata=rbind(cl_overfbacc,dw_overfbacc)
-overfbaccdata=overfbaccdata[order(overfbaccdata$Algorithm,overfbaccdata$Frac),c(2,1,3,4)]
-rownames(overfbaccdata)=NULL
-
-p_overfbacc = ggplot(data = overfbaccdata, aes(x=Frac, y=over)) + 
-  geom_point(aes(colour = Algorithm)) + 
-  geom_line(aes(colour = Algorithm)) +
-  geom_errorbar(aes(colour = Algorithm, linetype='dashed',
-                    width=0.015,ymin=(over-sem),ymax=(over+sem))) +
-  scale_color_manual(values=summary_plotcolors) + 
-  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
-  labs(x='Fraction of Training Data (80%)', y='Balanced Accuracy Train-Test (Overfitting)')
-#ggsave(paste(base_dir, 'figs/', 'all_classic_dw_overfbacc_', as.character(d), '.pdf', sep=''), plot = p_overfbacc, device = 'pdf', width = 25, height = 15)
 

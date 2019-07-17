@@ -24,7 +24,7 @@ positive_classes = c("tumor","Positive","kirc","luad","Luminal_A","Luminal_A")
 classes_levels = list(c("normal","tumor"),c("Negative","Positive"),c("kirp","kirc"),c("lusc","luad"),c("Luminal_B","Luminal_A"),c("Luminal_B","Luminal_A"))
 n_splits = 100
 
-for (n in 1:6) {
+for (n in 1:length(datasets)) {
   dir=paste(base_dir,datasets[[n]],"_bootstrap_resamples/",sep='')
   mat = readMat(paste(dir,meth,sfx,'_pred_for_R.mat',sep=""))
   pos_class=positive_classes[[n]]
@@ -52,31 +52,6 @@ for (n in 1:6) {
     cm_train = confusionMatrix(pred_train, class_train, positive = pos_class)
     cm_test = confusionMatrix(pred_test, class_test, positive = pos_class)
     
-    ### Uncomment to try to calculate AUPRC in R. For some reason gave very 
-    ### strange results, so moved calculation to Python
-
-    # if (which(levels(class_train) == pos_class) == 1) {
-    #   posg = 1-response_train[class_train==pos_class]; 
-    #   negg = response_train[class_train!=pos_class];
-    #   pr = pr.curve(scores.class0 = posg, scores.class1 = negg)
-    #   auprc.train=pr$auc.integral
-    #   
-    #   posg = 1-response_test[class_test==pos_class];
-    #   negg = response_test[class_test!=pos_class];
-    #   pr = pr.curve(scores.class0 = posg, scores.class1 = negg)
-    #   auprc.test=pr$auc.integral
-    # }
-    # else{
-    #   posg = response_train[class_train==pos_class]; 
-    #   negg = 1-response_train[class_train!=pos_class];
-    #   pr = pr.curve(scores.class0 = posg, scores.class1 = negg)
-    #   auprc.train=pr$auc.integral
-    #   
-    #   posg = response_test[class_test==pos_class];
-    #   negg = 1-response_test[class_test!=pos_class];
-    #   pr = pr.curve(scores.class0 = posg, scores.class1 = negg)
-    #   auprc.test=pr$auc.integral
-    # }
     if(pos_class == classes[[1]]) {
       auc_train_pred = 1-response_train
       auc_test_pred = 1-response_test

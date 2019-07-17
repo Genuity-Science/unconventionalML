@@ -22,8 +22,9 @@ in SA code for additional parameters of SA.
 '''
 
 reps=1000
-suffix="_nr-1000"
-#suffix="Sweeps_100"
+suffix="_nr-1000" #suffix to append to output .dat files
+
+# read in commandline arguments 
 if [ "$#" -lt 2 ]; then
     sweeps=10000
 else
@@ -42,8 +43,11 @@ else
     b1=$4
     suffix="${suffix}_b1-$b1"
 fi
+
 suffix=${suffix//./d}
 echo "Running files in $1 with $sweeps sweeps and final inverse temperature of $b1, initial inverse temperature of $b0" 
+
+# loop through files
 for file in $1 
 do
 		echo "Running" $file

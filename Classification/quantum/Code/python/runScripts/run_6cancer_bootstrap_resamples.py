@@ -24,6 +24,8 @@ for cinit in cinits :
     outlist_new = np.empty(100,dtype=object)
     for n in range(100):
         tdata = traindatas[n]
-        out = DW_utils.runMultiCV(tdata,[0],embedding,solver_name = 'DW',num_reads=10000,num_gauges=10,coupling_init=cinit,stop_point=0.001,method='vote')
+        out = DW_utils.runMultiCV(tdata,[0],embedding,solver_name = 'DW',
+                num_reads=10000,num_gauges=10,coupling_init=cinit,
+                stop_point=0.001,method='vote')
         outlist_new[n] = out
     sio.savemat(base_dir + 'cinit' + str(cinit) + '_ri_sols.mat',{'out':outlist_new},do_compression=True)

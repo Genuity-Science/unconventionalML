@@ -6,8 +6,8 @@ function [results,testperf] = analyze_serial_dilutions_rand(fracs,d,saveFlag)
 % analyze_lumAB_serial_dilutions.m for more parameters that can try).  
 
 % the fraction of the original training data to use
-nTotSols =1000; %[5 50]; % [20 100 1000];
-nSols = 20;%[1 5 10 20 50];% 5 10 20 100 1000];
+nTotSols =1000; % [5 10 20 100 1000];
+nSols = 20;% [1 5 10 20 100 1000];
 if strcmp(d,'6cancer')
     multiFlag = true;
     Nfeats = 65;

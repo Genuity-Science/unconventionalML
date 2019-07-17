@@ -1,8 +1,6 @@
-% script to print SA files for bootstrap resamples. 
+% script to print SA files for serial dilutions. 
 
-%fracs = [0.02:0.02:0.2 0.25:0.05:0.95];
-%fracs = [0.06 0.1:0.05:0.95];
-fracs = [0.05 0.15];
+fracs = [0.02:0.02:0.2 0.25:0.05:0.95];
 %d = 'ERpn_splits'
 d = '6cancer_splits';
 for n = 1 : length(fracs)

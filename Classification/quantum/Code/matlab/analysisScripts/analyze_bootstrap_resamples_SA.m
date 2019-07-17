@@ -11,13 +11,12 @@ sig = @(x) 1./(1+exp(-x));
 nTotSols = [1 5 20 50 100 1000];
 nSols = [1 5 10 20 50 100 1000];
 
-%pcs = [24 44 84 117];
 pcs = [44];
 %b1s = [0.03 0.1 0.3 1 3];
 b1s = [0.03];
 sa_mat_name = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/bootstrap_resamples_SA_sols.mat';
 % previously saved solutions 
-for n = 6 : 6 
+for n = 1 : 6 
     d = datasets{n};
     disp(d)
     dir_name = ['~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/' d ...
@@ -33,7 +32,6 @@ for n = 6 : 6
     end
     all_traindatas = traindatas;
     all_testdatas = testdatas;
-    % eval(['sols = ' d '_SA_sols;']);
     for k = 1 : length(pcs)
         traindatas = cellfun(@(x) x(:,1:pcs(k)+1),all_traindatas,'uniformoutput',false);
         testdatas = cellfun(@(x) x(:,1:pcs(k)+1),all_testdatas,'uniformoutput',false);
@@ -83,8 +81,6 @@ for n = 6 : 6
                         y_pred_trains(:,m) = sig(trdata(:,2:end)*tmpsol');
                         y_pred_tests(:,m) = sig(tstdata(:,2:end)*tmpsol');
                     end
-            %        save([dir_name 'SA_pred_for_R2.mat'],'y_trains','y_tests',...
-            %             'y_pred_tests','y_pred_trains')            
                     eval([rname '= results;'])
                     eval([tname '= testperf;'])
                     try

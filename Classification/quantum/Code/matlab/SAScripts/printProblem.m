@@ -1,3 +1,10 @@
+% Script to print problem in 3-column format, where first column is the first spin
+% the second column is the second spin, and the third column is the value of the 
+% coupling. If the first spin and the second spin are the same, the value is the 
+% value of the local field. 
+% 
+%   printProblem(h,J,outFile,lambda,nFlag)
+
 function printProblem(h,J,outFile,lambda,nFlag)
 
 rng('shuffle')

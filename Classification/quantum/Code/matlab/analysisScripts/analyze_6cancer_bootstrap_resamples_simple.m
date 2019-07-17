@@ -13,7 +13,6 @@ for n = 1 : length(cinits)
     load([base_dir sprintf('cinit%1.1f_ri_sols.mat',cinits(n))]);
     for m = 1 : length(out)
         sols = cellfun(@(x) x{1},out{m},'uniformoutput',false);
-%        sols = cellfun(@(x) x(1:5,:),sols,'uniformoutput',false);
         [r(m),t(m)] = analyzeMultinomialResults(sols,traindatas{m},testdatas{m},...
             'metric','acc','nSols',20,'uniqueFlag',true,'lambdas',0,...
             'iterFlag',false,'testFlag',true);

@@ -1,7 +1,6 @@
 % script to print SA files for bootstrap resamples. 
 
 datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB'};
-%pcs = [25 85 118];
 pcs = [44];
 for n = 2 : length(datasets)
     d = datasets{n};

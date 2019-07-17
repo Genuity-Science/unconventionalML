@@ -13,8 +13,8 @@ if nargin < 4
 end
 
 % the fraction of the original training data to use
-nTotSols = [1000 ];
-nSols = [1];% 5 10 20 50 100];
+nTotSols = 1000;%[5 10 20 100 1000];
+nSols = 1;% 5 10 20 50 100];
 dir_name = ['~/Dropbox-Work/Wuxi/Results/' d '_splits/'];
 
 if strcmp(d,'6cancer')
@@ -49,8 +49,6 @@ for k = 1 : length(cinits)
             % main loop: go through resamples of data
             s=sprintf('Cinit: %1.1f, nTotSols: %d, nSols: %d',cinit,nTotSols(p),nSols(ii));
             disp(s);
-%            rname = ['cinit' num2str(cinit) '_ntotsols_'  num2str(nTotSols(p)) '_minsol_results'];
-%            tname =  ['cinit' num2str(cinit) '_ntotsols_' num2str(nTotSols(p)) '_minsol_testperf'];
             rname = ['cinit' num2str(cinit) '_at_5_nsols_' num2str(nSols(ii)) ...
                 '_ntotsols_'  num2str(nTotSols(p)) '_results'];
             tname =  ['cinit' num2str(cinit) '_at_5_nsols_' num2str(nSols(ii)) ...
@@ -99,6 +97,4 @@ for k = 1 : length(cinits)
     clear *datas*
 end
 
-%rname = ['cinit8_at_5_ntotsols_' num2str(ntotsols) '_minsol_results'];
-%tname = ['cinit8_at_5_ntotsols_' num2str(ntotsols) '_minsol_testperf'];
 

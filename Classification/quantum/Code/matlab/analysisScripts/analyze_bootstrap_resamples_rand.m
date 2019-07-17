@@ -11,8 +11,6 @@ sig = @(x) 1./(1+exp(-x));
 nTotSols = [1 5 20 50 100 1000];
 % number of solutions to include in the iterative procedure
 nSols = [1 5 10 20 50 100 1000];
-%nSols = [1000];
-%pcs = [24 44 65 84 117];
 pcs = [44];
 for n = 6 : length(datasets)
     d = datasets{n};

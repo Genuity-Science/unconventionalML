@@ -1,9 +1,6 @@
-% this function uses a sliding window of the energies to determine whether
+% this script uses a sliding window of the energies to determine whether
 % there is an "optimal" energy range where the balanced accuracy is greatest.
-% As a bonus also gets the log-loss versus the accuracy and compares. Should
-% think about whether use iterative or average. SHould I also see how the bacc
-% results do on the logloss and vice versa? I think so...For now just look 
-% at optimize for bacc and take both the logloss and the bacc
+% As a bonus also gets the log-loss versus the accuracy and compares. 
 
 sig = @(x) 1./(1+exp(-x));
 datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB'};
@@ -42,14 +39,14 @@ for n =  1 : length(datasets)
         for ii = 1 : 981
             tmp_dw_sols = cellfun(@(x) x(ii:ii+19,:),dw_sols,'uniformoutput',false);
             tmp_rand_sols = cellfun(@(x) x(ii:ii+19,:),rand_sols{m},'uniformoutput',false);
-%            [dw_r,dw_t] = analyzeLogisticResults(tmp_dw_sols, trdata,trdata, 'uniqueFlag', true, 'iterFlag', true, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
-%            [rand_r,rand_t] = analyzeLogisticResults(tmp_rand_sols, trdata,trdata, 'uniqueFlag', true, 'iterFlag', true, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
-%            dw_loss(m).it_bacc(ii) = dw_t.best_meansolsBacc;
-%            dw_loss(m).it_logloss(ii) = dw_t.meansolsLogloss;
-%            dw_loss(m).it_en(ii) = calcEns(mean(cell2mat(dw_r.TestItSols)),h,J);
-%            rand_loss(m).it_bacc(ii) = rand_t.best_meansolsBacc;
-%            rand_loss(m).it_logloss(ii) = rand_t.meansolsLogloss;
-%            rand_loss(m).it_en(ii) = calcEns(mean(cell2mat(rand_r.TestItSols)),h,J);
+            [dw_r,dw_t] = analyzeLogisticResults(tmp_dw_sols, trdata,trdata, 'uniqueFlag', true, 'iterFlag', true, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
+            [rand_r,rand_t] = analyzeLogisticResults(tmp_rand_sols, trdata,trdata, 'uniqueFlag', true, 'iterFlag', true, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
+            dw_loss(m).it_bacc(ii) = dw_t.best_meansolsBacc;
+            dw_loss(m).it_logloss(ii) = dw_t.meansolsLogloss;
+            dw_loss(m).it_en(ii) = calcEns(mean(cell2mat(dw_r.TestItSols)),h,J);
+            rand_loss(m).it_bacc(ii) = rand_t.best_meansolsBacc;
+            rand_loss(m).it_logloss(ii) = rand_t.meansolsLogloss;
+            rand_loss(m).it_en(ii) = calcEns(mean(cell2mat(rand_r.TestItSols)),h,J);
            
             [dw_r,dw_t] = analyzeLogisticResults(tmp_dw_sols, trdata,trdata, 'uniqueFlag', true, 'iterFlag', false, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
             [rand_r,rand_t] = analyzeLogisticResults(tmp_rand_sols,trdata, trdata, 'uniqueFlag', true, 'iterFlag', false, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
@@ -65,10 +62,10 @@ for n =  1 : length(datasets)
         N_SA_sols = min(cellfun(@length,sa_sols{m}));
         for ii = 1 : N_SA_sols-19
             tmp_sa_sols = cellfun(@(x) x(ii:ii+19,:),sa_sols{m},'uniformoutput',false);
-%            [sa_r,sa_t] = analyzeLogisticResults(tmp_sa_sols,trdata, tstdata, 'uniqueFlag', true, 'iterFlag', true, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
-%            sa_loss(m).it_bacc(ii) = sa_t.best_meansolsBacc;
-%            sa_loss(m).it_logloss(ii) = sa_t.meansolsLogloss;
-%            sa_loss(m).it_en(ii) = calcEns(mean(cell2mat(sa_r.TestItSols)),h,J);
+            [sa_r,sa_t] = analyzeLogisticResults(tmp_sa_sols,trdata, tstdata, 'uniqueFlag', true, 'iterFlag', true, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
+            sa_loss(m).it_bacc(ii) = sa_t.best_meansolsBacc;
+            sa_loss(m).it_logloss(ii) = sa_t.meansolsLogloss;
+            sa_loss(m).it_en(ii) = calcEns(mean(cell2mat(sa_r.TestItSols)),h,J);
             [sa_r,sa_t] = analyzeLogisticResults(tmp_sa_sols,trdata, trdata, 'uniqueFlag', true, 'iterFlag', false, 'nSols', 20, 'lambdas',[0],'postProcess','test','biasFlag',false);
             sa_loss(m).avg_bacc(ii) = sa_t.best_meansolsBacc;
             sa_loss(m).avg_logloss(ii) = sa_t.meansolsLogloss;

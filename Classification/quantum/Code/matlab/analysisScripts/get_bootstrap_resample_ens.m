@@ -1,4 +1,4 @@
-
+% Script to get DW and SA energies for bootstrap resamples. Not really used.
 datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB'};
 
 for n = 1:5

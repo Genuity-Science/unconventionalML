@@ -1,9 +1,6 @@
-% this function uses a sliding window of the energies to determine whether
+% this script uses a sliding window of the energies to determine whether
 % there is an "optimal" energy range where the balanced accuracy is greatest.
-% As a bonus also gets the log-loss versus the accuracy and compares. Should
-% think about whether use iterative or average. SHould I also see how the bacc
-% results do on the logloss and vice versa? I think so...For now just look 
-% at optimize for bacc and take both the logloss and the bacc
+% As a bonus also gets the log-loss versus the accuracy and compares. 
 
 datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB'};
 sig = @(x) 1./(1+exp(-x));

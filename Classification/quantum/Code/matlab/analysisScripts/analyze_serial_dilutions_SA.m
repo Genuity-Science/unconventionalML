@@ -11,10 +11,8 @@ sig = @(x) 1./(1+exp(-x));
 
 % suffix for SA instance names
 dir_name = ['~/Dropbox-Work/Wuxi/Results/' d '_splits/'];
-%nTotSols = [1 5 20 50 100];
-%nSols = [1 5 10 20 50 100];
-nTotSols=1000;
-nSols = 20;
+nTotSols = 1000; %[1 5 20 50 100];
+nSols = 20; %[1 5 10 20 50 100];
 b1s = [0.03 ];
 if strcmp(d,'6cancer')
     multiFlag = true;

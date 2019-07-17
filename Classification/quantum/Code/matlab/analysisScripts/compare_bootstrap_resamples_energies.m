@@ -1,6 +1,6 @@
 % Wrapper file (kind of) for comparing the solutions returned by SA and DW
 % for bootstrap resamples. Names of .mat files with results are hard-coded and
-% can be changed as needed. 
+% can be changed as needed. On its way to being deprecated. 
 
 base_dir = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/';
 data_dir = '~/Dropbox-Work/Wuxi/Data/';

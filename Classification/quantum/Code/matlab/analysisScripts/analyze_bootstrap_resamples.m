@@ -7,12 +7,9 @@ clear *results* *testperf*
 % list of dataset names
 datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB','lumAB_gene'};
 sig = @(x) 1./(1+exp(-x));
-%nSols = [20 50 100 1000];
 nTotSols = [1 5 20 50 100 1000];
 nSols = [1 5 10 20 50 100 1000];
 cinits = [0.5 1 3 8 16 32];
-%cinits = [8];
-%cinits = [16 32];
 for n = 6: length(datasets)
     d = datasets{n};
     disp(d)
@@ -50,11 +47,6 @@ for n = 6: length(datasets)
                         trdata, tstdata, 'uniqueFlag', true, 'iterFlag', false, ...
                         'nSols', nSols(ii), 'lambdas',[0],'postProcess','test',...
                         'biasFlag',false,'metric','bacc');
-    %                y_trains(:,m) = trdata(:,1);
-    %                y_tests(:,m) = tstdata(:,1);
-    %                tmpsol = mean(cell2mat(results(m).TestItSols(:,1)));
-    %                y_pred_trains(:,m) = sig(trdata(:,2:end)*tmpsol');
-    %                y_pred_tests(:,m) = sig(tstdata(:,2:end)*tmpsol');
                 end
                 eval([rname '= results;'])
                 eval([tname '= testperf;'])
@@ -64,9 +56,6 @@ for n = 6: length(datasets)
                     save([dir_name 'results'],rname,tname);
                 end
             end
-            % save in a format for plotting with R
-%        save([dir_name 'pred_for_R2.mat'],'y_trains','y_tests','y_pred_tests','y_pred_trains');
-%        clearvars testdatas traindatas results testperf y_*
             clearvars y_*
         end
     end

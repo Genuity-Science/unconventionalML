@@ -1,14 +1,14 @@
-% Output lumAB serial dilution predictions for R. In case changed r or 
-% want specific result. See analyze_lumAB_serial_dilutions.m
+% Output serial dilution predictions for R. In case changed or 
+% want specific result. See analyze_serial_dilutions.m
 function output_serial_dilutions_preds_for_R(d,r,fname);
-% E.g: output_serial_dilutions_preds_for_R([0.18 0.2:0.05:0.95],'lumAB',rand_pc44_nsols20_results,'~/Dropbox-Work/Wuxi/Results/lumAB_splits/preds_for_R/rand_frac_%s_nsols20_preds_for_R.mat')
+% E.g: output_serial_dilutions_preds_for_R('lumAB',rand_pc44_nsols20_results,'~/Dropbox-Work/Wuxi/Results/lumAB_splits/preds_for_R/rand_frac_%s_nsols20_preds_for_R.mat')
 
 sig = @(x) 1./(1+exp(-x));
 
 for n = 1 : size(r,1)
     frac = r(n,1).frac;
     load(['~/Dropbox-Work/Wuxi/Data/' d '_splits/frac_' num2str(frac) '_data_resamples.mat']);
-    for m = 1 : 50 
+    for m = 1 : length(traindatas) 
         y_trains(:,m) = traindatas{m}(:,1);
         y_exptests(:,m) = exptestdatas{m}(:,1);
         y_valids(:,m) = valdatas{m}(:,1);

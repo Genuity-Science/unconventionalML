@@ -1,4 +1,4 @@
-''' 
+'''
 
 Script for generating plots for serial dilutions. 
 
@@ -180,3 +180,51 @@ all_bacc_pop = rbind(cl_bacc_pop,dw_bacc_pop)
 saveRDS(all_bacc_pop,paste(load_path,d,'_all_bacc_pop_data',dw_sfx,'.RDS',sep=''))
 saveRDS(all_bacc_stats_df,paste(load_path,d,'_bacc_stats',dw_sfx,'.RDS',sep=''))
 
+# -------------------- #
+# overfitting plot
+# no test data for Frac = 1
+cl_overf= all_cl_df %>% 
+  filter(Frac != 1) %>% 
+  group_by(Frac, Algorithm,variable) %>% 
+  summarise(over=value[Dataset=="Train"]-value[Dataset=="Valid"],sem=sqrt(sum(sem^2)),Dataset="Tr-Val") %>% 
+  as.data.frame()
+dw_overf= dw_fulldf %>% 
+  filter(Frac != 1) %>% 
+  group_by(Frac, Algorithm,variable) %>% 
+  summarise(over=value[Dataset=="Train.DW"]-value[Dataset=="Valid.DW"],sem=sqrt(sum(sem^2)),Dataset="Tr-Val.DW") %>% 
+  as.data.frame()
+
+full_overf = rbind(cl_overf,dw_overf)
+
+p_overf = ggplot(data = full_overf, aes(x=Frac, y=over)) + 
+  geom_point(aes(colour = Dataset)) + 
+  geom_line(aes(colour = Dataset)) + 
+  geom_errorbar(aes(colour = Dataset,linetype='dashed',width=0.015,ymin=(over-sem),ymax=(over+sem))) +
+  scale_color_manual(values=overf_plotcolors) + 
+  facet_wrap(Algorithm~variable, nrow = nrowplot, ncol = ncolplot) + 
+  theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
+  labs(x='Fraction of Training Data (80%)', y='Metric Overfit (Train - Test)')
+#ggsave(paste(base_dir, 'figs/', 'all_classic_dw_overfit_', as.character(name), '.pdf', sep=''), plot = p_overf, device = 'pdf', width = 25, height = 15)
+
+# -------------------- #
+# balanced accuracy overfitting - summary plot
+#choose only test balanced accuracy, then remove columns that no longer vary
+dw_overfbacc=dw_overf[dw_overf$variable=="Bal.Accuracy" & dw_overf$Algorithm=="LASSO",!(names(dw_overf) %in% c("variable","Dataset"))]
+dw_overfbacc['Algorithm']="Q.Annealing"
+cl_overfbacc=cl_overf[cl_overf$variable=="Bal.Accuracy",!(names(cl_overf) %in% c("variable","Dataset"))]
+
+overfbaccdata=rbind(cl_overfbacc,dw_overfbacc)
+overfbaccdata=overfbaccdata[order(overfbaccdata$Algorithm,overfbaccdata$Frac),c(2,1,3,4)]
+rownames(overfbaccdata)=NULL
+
+p_overfbacc = ggplot(data = overfbaccdata, aes(x=Frac, y=over)) + geom_point(aes(colour = Algorithm)) + geom_line(aes(colour = Algorithm))+
+  geom_errorbar(aes(colour = Algorithm,linetype='dashed',width=0.015,ymin=(over-sem),ymax=(over+sem))) +scale_color_manual(values=summary_plotcolors) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + labs(x='Fraction of Training Data (80%)', y='Balanced Accuracy Train-Test (Overfitting)')
+#ggsave(paste(base_dir, 'figs/', 'all_classic_dw_overfbacc_', as.character(name), '.pdf', sep=''), plot = p_overfbacc, device = 'pdf', width = 25, height = 15)
+
+# -------------------- #
+# Cramer Von-Mises for overfitting and test data
+# pvalue is interpreted as probability observations happen by chance if the two distributions are the same
+cvm_overf = full_overf %>% group_by(Algorithm,variable) %>% summarise(pval_overf=round(CvM.test(over[Dataset=="Tr-Tst"],over[Dataset=="Tr-Tst.DW"])$p.value,decimals)) %>% as.data.frame() # statistic=CvM.test(over[Dataset=="Tr-Tst"],over[Dataset=="Tr-Tst.DW"])$statistic
+cvm_test = fulldata %>% filter(Frac != 1, grepl("Test",Dataset)) %>% group_by(Algorithm,variable) %>% summarise(pval_test=round(CvM.test(value[Dataset=="ExpandTest"],value[Dataset=="ExpandTest.DW"])$p.value,decimals)) %>% as.data.frame()
+
+cvm_summary = merge(cvm_overf,cvm_test,by=c("Algorithm","variable"))

@@ -5,14 +5,11 @@ The data files for 'bootstrap_resamples' are at:
 https://nextcodehealth.sharepoint.com/:f:/s/quantumMachineLearning/EgjszDv1cLxMolz5klaGVIsBNGNFq_fr3TthVxXZ0QG-Mg?e=2ReUj4
 
 all_bootstrap_resamples.R:
-Script that calculates various metrics for the binomial comparisons - "brcaMatchedTN","ERpn","kirckirp","luadlusc", for each of the generated bootstrap resamples.
-Output metrics are saved to "*multirun_save.RDS"
-
-lum_ab_bootstrap_resamples.R
-Script that calculates various metrics for the LumA vs. LumB binomial comparison, for each of the generated bootstrap resamples.
+Script that calculates various metrics for the binomial comparisons - "brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB", for each of the generated bootstrap resamples.
 Output metrics are saved to "*multirun_save.RDS"
 
 lumAB_alldata_multirun_44genes.R
-Script to run classical classification algorithms on top 44 genes of PC1 for LumA vs. LumB binomial comparison.
+Script to run classical classification algorithms on top 44 genes of PC1 for LumA vs. LumB binomial comparison. Output file "lumab_multicut_multirun_44genes_save.RDS" in output folder.
+
 pc1_top_44_genes_ids.txt
 The 44 most informative genes, by PCA loading of PC1, from the original training set for the LumA vs. LumB breast cancer dataset. 

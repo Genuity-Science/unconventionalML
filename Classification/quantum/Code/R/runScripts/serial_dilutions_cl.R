@@ -1,6 +1,3 @@
-# Run classical algorithms for lumAB serial incremental decrease. For running on hpc.
-# Have two versions so can run them in parallel.
-
 rm(list = ls())
 gc()
 library(feather)
@@ -14,10 +11,10 @@ library(R.matlab)
 Sys.setenv(TZ="US/Eastern")
 
 # Load Data -- LUM A vs. LUM B
-#base_dir = '/home/cmb-panasas2/liry/Wuxi/Data/lumAB_splits_gene/'
-base_dir = '/home/cmb-panasas2/liry/Wuxi/Data/lumAB_splits/'
-pos_class = "Luminal_A"
-classes_levels = c("Luminal_A","Luminal_B")
+f = 'luadlusc' # lumAB, multi, ERpn,luadlusc
+base_dir = paste('/home/cmb-panasas2/liry/Wuxi/Data/',f,'_splits/',sep="")
+pos_class = 'luad'
+classes_levels = c("lusc","luad")
 
 methods = c('glmnet','glmnet','svmLinear2','rf','nb') #('xgbLinear','svmRadial','svmLinear')
 method_disp = c('lasso','ridge','svm','rf','nb')
@@ -31,15 +28,16 @@ cvCtrl = trainControl(method = "cv", number = 10,classProbs = TRUE)
 n_pc = 44
 n_splits = 50
 
-low_fracs = seq(0.18, 0.2, 0.02)
-high_fracs = seq(0.30, 0.95, 0.05)
-all_fracs = c(low_fracs, high_fracs)
+args = commandArgs(trailingOnly=T)
+st = as.numeric(args[1]) # start index
+interval = as.numeric(args[2]) # how many to skip 
 
-info=data.frame(method=character(),tr_acc=double(),tst_acc=double(),
+all_fracs = c(0.06,seq(0.1,0.95,0.05))
+#all_fracs = c(0.18,seq(0.35,0.95,0.05))
+info=data.frame(frac=double(),method=character(),tr_acc=double(),tst_acc=double(),
               tr_bacc=double(),tst_bacc=double(),tr_auroc=double(), tst_auroc=double(),
               tr_prec=double(), tst_prec=double(), tr_recall=double(), tst_recall=double(),
               tr_F1=double(),tst_F1=double(),stringsAsFactors=FALSE)
-
 n=1;
 cm_train_list = list()
 cm_test_list = list()
@@ -50,14 +48,14 @@ response_test_list = list()
 response_val_list = list()
 response_exptest_list = list()
 
-for (ii in seq(1,length(all_fracs),2)) {
+for (ii in seq(st,length(all_fracs),interval)) {
   cat("Frac: ",all_fracs[[ii]],"\n")
 
   mat = readMat(paste(base_dir,"frac_",all_fracs[[ii]],"_data_resamples.mat",sep=""))
-  traindatas = unlist(mat$traindatas.scaled,recursive=FALSE)
-  exptestdatas = unlist(mat$exptestdatas.scaled,recursive=FALSE)
-  valdatas = unlist(mat$valdatas.scaled,recursive=FALSE)
-  testdatas = unlist(mat$testdatas.scaled,recursive=FALSE)
+  traindatas = unlist(mat$traindatas,recursive=FALSE)
+  exptestdatas = unlist(mat$exptestdatas,recursive=FALSE)
+  valdatas = unlist(mat$valdatas,recursive=FALSE)
+  testdatas = unlist(mat$testdatas,recursive=FALSE)
   
   # Run through # of Splits
   for (j in 1:n_splits) {
@@ -92,10 +90,10 @@ for (ii in seq(1,length(all_fracs),2)) {
     z_x_exptest = sweep(x_exptest, 2, x_train_mean, "-")
     z_x_exptest = sweep(z_x_exptest, 2, x_train_sd, "/")
     
-    colnames(z_x_train) = paste('Gene_', seq(1,ncol(z_x_train)), sep = '')
-    colnames(z_x_test) = paste('Gene_', seq(1,ncol(z_x_test)), sep = '')
-    colnames(z_x_val) = paste('Gene_', seq(1,ncol(z_x_val)), sep = '')
-    colnames(z_x_exptest) = paste('Gene_', seq(1,ncol(z_x_exptest)), sep = '')
+    colnames(z_x_train) = paste('PC_', seq(1,ncol(z_x_train)), sep = '')
+    colnames(z_x_test) = paste('PC_', seq(1,ncol(z_x_test)), sep = '')
+    colnames(z_x_val) = paste('PC_', seq(1,ncol(z_x_val)), sep = '')
+    colnames(z_x_exptest) = paste('PC_', seq(1,ncol(z_x_exptest)), sep = '')
     for (m in 1:length(methods)) {
       method=methods[m]
       print(method_disp[[m]])
@@ -109,7 +107,7 @@ for (ii in seq(1,length(all_fracs),2)) {
       pred_val = predict(fit,z_x_val)
       pred_exptest = predict(fit,z_x_exptest)
       
-      # Confusion matrices
+      # Class Stats
       cm_train = confusionMatrix(pred_train, class_train, positive = pos_class)
       cm_test = confusionMatrix(pred_test, class_test, positive = pos_class)
       cm_val = confusionMatrix(pred_val, class_val, positive = pos_class)
@@ -124,6 +122,7 @@ for (ii in seq(1,length(all_fracs),2)) {
       response_test[is.nan(response_test)] = 0.5
       response_val[is.nan(response_val)] = 0.5
       response_exptest[is.nan(response_exptest)] = 0.5
+#      response_train
 
       response_train_list[[n]] = response_train
       response_test_list[[n]] = response_test
@@ -147,6 +146,7 @@ for (ii in seq(1,length(all_fracs),2)) {
       cm_val_list[[n]] = cm_val
       cm_exptest_list[[n]] = cm_exptest
       
+      # need code that gets same data, vector or matrix, just a comma difference in notation!
       info[n,'tr_bacc']=mean(cm_train$byClass['Balanced Accuracy'])
       info[n,'tst_bacc']=mean(cm_test$byClass['Balanced Accuracy'])
       info[n,'val_bacc']=mean(cm_val$byClass['Balanced Accuracy'])
@@ -170,7 +170,8 @@ for (ii in seq(1,length(all_fracs),2)) {
       n = n+1 
     }
   }
+  save_vars = list(cm_train_list,cm_test_list,cm_val_list,cm_exptest_list,info,response_train_list,response_test_list,response_val_list,response_exptest_list)
+  names(save_vars) = c("cm_train_list","cm_test_list","cm_val_list","cm_exptest_list","info","response_train_list","response_test_list","response_val_list","response_exptest_list")
+  saveRDS(save_vars,paste(f,"_frac_", as.character(all_fracs[[ii]]), "_save.RDS",sep=""))
 }
-save_vars = list(cm_train_list,cm_test_list,cm_val_list,cm_exptest_list,info,response_train_list,response_test_list,response_val_list,response_exptest_list)
-names(save_vars) = c("cm_train_list","cm_test_list","cm_val_list","cm_exptest_list","info","response_train_list","response_test_list","response_val_list","response_exptest_list")
-saveRDS(save_vars,"frac_save1.RDS")
+

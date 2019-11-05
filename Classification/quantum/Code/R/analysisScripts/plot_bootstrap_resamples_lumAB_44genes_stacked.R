@@ -1,9 +1,6 @@
-'''
+# Script to plot results from bootstrap resamples with the lumAB, using 44 genes
+# from PC1. Compares classical, DW, SA, random, field results.
 
-Script to plot results from bootstrap resamples with the lumAB, using 44 genes
-from PC1. Compares classical, DW, SA, random, field results.
-
-'''
 
 #rm(list=ls())
 #gc()
@@ -19,7 +16,7 @@ library(grid)
 library(tidyr)
 
 
-base_dir = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/'
+base_dir ='/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/quantum/Results/bootstrap_resamples/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
 # read lumAB after running 100 runs on 44 genes derived from top pc1 for a single cut
@@ -115,5 +112,6 @@ p_test = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=metric)) +
   geom_line(aes(color=metric)) + 
   facet_wrap(vars(dataset),scales="free",nrow=nleg) + 
   theme_bw() + 
-  scale_x_discrete(breaks=tmp_df$dataset_baccorder,labels=tmp_df$method) +
+  scale_x_discrete(breaks=tmp_df$dataset_baccorder,labels=tmp_df$method,expand=c(0.03,0)) +
+  theme(legend.position="bottom",text=element_text(size=16)) + 
   xlab("Algorithm") + ylab("Value") + labs(color="Metric")

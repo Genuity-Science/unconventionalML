@@ -1,9 +1,6 @@
-'''
+# Script to plot results from bootstrap resamples for binomial datasets. 
+# Compares classical, DW, SA, random, field results.
 
-Script to plot results from bootstrap resamples for binomial datasets. 
-Compares classical, DW, SA, random, field results.
-
-'''
 
 rm(list=ls())
 gc()
@@ -18,7 +15,7 @@ library(stringr)
 #library(grid)
 library(tidyr)
 
-base_dir = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/'
+base_dir ='/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/quantum/Results/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
 # define datasets to loop over 
@@ -28,7 +25,7 @@ datasets = c("brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB")
 all_cl_info = data.frame()
 for (n in 1:length(datasets)) {
   dataset = datasets[[n]]
-  l = readRDS(paste(base_dir, dataset,'_multirun_save.RDS',sep=""))
+  l = readRDS(paste(base_dir, dataset,'_multirun_save.RDS',sep="")) #_multirun_save.RDS
   info = l$info
   info$dataset = dataset
   all_cl_info = rbind(all_cl_info,info)
@@ -40,10 +37,12 @@ all_sa_info = readRDS(paste(base_dir,"bootstrap_resamples_sa_nsols_20_ntotsols_1
 
 # D-Wave info
 all_dw_info = readRDS(paste(base_dir,"bootstrap_resamples_dw_nsols_20.RDS",sep=""))
+all_dw_info[c("tr_auprc","tst_auprc")] = NULL
 
 #Random info
 all_rand_info = readRDS(paste(base_dir,"bootstrap_resamples_rand_nsols20.RDS",sep=""))
 all_rand_info$method <- "Random"
+all_rand_info[c("tr_auprc","tst_auprc")] = NULL
 
 all_field_info = readRDS(paste(base_dir,"bootstrap_resamples_field.RDS",sep=""))
 all_field_info$method <- "Field"
@@ -111,8 +110,10 @@ tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder)
 
 p = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=Metric)) + 
   geom_errorbar(aes(color=Metric,width=0.1,ymin=(value-sem),ymax=(value+sem))) + 
-  geom_line(aes(color=Metric)) + 
+  geom_line(aes(color=Metric)) +
   facet_wrap(vars(dataset),scales="free",nrow=nleg) + 
   theme_bw() + 
-  scale_x_discrete(breaks=tmp_df$dataset_baccorder,labels=tmp_df$method) +
-  xlab("Algorithm") + ylab("Value")
+  scale_x_discrete(breaks=tmp_df$dataset_baccorder,labels=tmp_df$method,expand=c(0.017,0)) +
+  xlab("Algorithm") + ylab("Value") + theme(legend.position="bottom",text=element_text(size=15),axis.text.x=element_text(hjust=0.6),legend.background=element_rect(size=0.25,linetype="solid",color="black"))
+#+ theme(legend.position=c(0.22,0.905),legend.background=element_rect(size=0.25,linetype="solid",color="black"),legend.title.align=0.5,text=element_text(size=15)) + guides(color=guide_legend(ncol=2))
+

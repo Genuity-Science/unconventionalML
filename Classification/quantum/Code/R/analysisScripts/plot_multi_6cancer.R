@@ -1,9 +1,6 @@
-'''
+# Script to plot results for 6-cancer multinomial data. 
+# from PC1. Compares classical, DW, SA, random, field results.
 
-Script to plot results for 6-cancer multinomial data. 
-from PC1. Compares classical, DW, SA, random, field results.
-
-'''
 
 rm(list=ls())
 gc()
@@ -16,7 +13,7 @@ require(RColorBrewer)
 library(dplyr)
 library(stringr)
 library(grid)
-library(ggpubr)
+# library(ggpubr)
 library(tidyr)
 
 method_levels = rev(c("SVM","SA","Ridge","RF","Random","NB","LASSO","Field","D-Wave"))

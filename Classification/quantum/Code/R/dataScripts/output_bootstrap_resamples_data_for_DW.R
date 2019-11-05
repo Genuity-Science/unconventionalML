@@ -84,7 +84,7 @@ for (n in 1:length(files)) {
   # for (n in 1:n_splits) {
   #   splits[n,] = sort(sample.int(n_rows,n_tr))
   # }
-  # # Save the splits
+  # # Save the splits 
   # cat("\n---------------\nSave Splits...\n---------------\n")
   # write.table(splits,paste(save_dir,f,"_bootstrap_resamples.txt",sep=""),quote=FALSE,col.names=FALSE,row.names=FALSE)
   splits = as.matrix(read.table(paste("~/Dropbox-Work/Wuxi/Data/",f,"_bootstrap_resamples.txt",sep="")))

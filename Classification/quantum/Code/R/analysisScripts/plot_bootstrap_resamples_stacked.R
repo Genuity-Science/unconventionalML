@@ -15,7 +15,7 @@ library(stringr)
 #library(grid)
 library(tidyr)
 
-base_dir ='/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/quantum/Results/'
+base_dir ='/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/classical/output/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
 # define datasets to loop over 
@@ -25,7 +25,7 @@ datasets = c("brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB")
 all_cl_info = data.frame()
 for (n in 1:length(datasets)) {
   dataset = datasets[[n]]
-  l = readRDS(paste(base_dir, dataset,'_multirun_save.RDS',sep="")) #_multirun_save.RDS
+  l = readRDS(paste(cl_dir, dataset,'_multirun_save.RDS',sep="")) #_multirun_save.RDS
   info = l$info
   info$dataset = dataset
   all_cl_info = rbind(all_cl_info,info)

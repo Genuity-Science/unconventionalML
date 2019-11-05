@@ -59,15 +59,6 @@ for (j in 1:n_splits) {
   levels(class_test) = classes_levels
   
   cat("\n---------------\nCut",as.character(j),"...\n---------------\n")
-  pc_train_mean = apply(pc_train, 2, mean)
-  pc_train_sd = apply(pc_train, 2, sd)
-  # Train
-  z_pc_train = sweep(pc_train, 2, pc_train_mean, "-")
-  z_pc_train = sweep(z_pc_train, 2, pc_train_sd, "/")
-  # Test
-  z_pc_test = sweep(pc_test, 2, pc_train_mean, "-")
-  z_pc_test = sweep(z_pc_test, 2, pc_train_sd, "/")
-  # Valid
   colnames(z_pc_train) = paste('PC_', seq(1,ncol(z_pc_train)), sep = '')
   colnames(z_pc_test) = paste('PC_', seq(1,ncol(z_pc_test)), sep = '')
   

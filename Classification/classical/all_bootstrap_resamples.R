@@ -19,9 +19,9 @@ Sys.setenv(TZ="US/Eastern")
 intervalStart <- Sys.time()
 
 # Load Data -- for all five binomial comparisons
-files=c("brcaMatchedTN","ERpn","kirckirp","luadlusc") # ,"lumAB")
-positive_classes = c("tumor","Positive","kirc","luad") #,"Luminal_A")
-classes_levels = list(c("normal","tumor"),c("Negative","Positive"),c("kirp","kirc"),c("lusc","luad")) #,c("Luminal_A","Luminal_B")
+files=c("brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB")
+positive_classes = c("tumor","Positive","kirc","luad","Luminal_A")
+classes_levels = list(c("normal","tumor"),c("Negative","Positive"),c("kirp","kirc"),c("lusc","luad"),c("Luminal_A","Luminal_B"))
 
 # methods for five classical algorithms using Caret package
 methods = c('glmnet','glmnet','svmLinear2','rf','nb') 
@@ -40,7 +40,8 @@ n_splits = 100
 
 for (ii in 1:length(files)) {
   cat("Dataset: ",files[[ii]],"\n")
-  # read the file with 100 pre-defined cuts for the data
+  # read the file with 100 pre-defined cuts for the data. These are generated in 
+  # output_bootstrap_resamples_for_DW.R
   mat = readMat(paste("bootstrap_resamples/",files[[ii]],"_bootstrap_resamples.mat",sep=""))
   traindatas = unlist(mat$traindatas,recursive=FALSE)
   testdatas = unlist(mat$testdatas,recursive=FALSE)
@@ -71,16 +72,6 @@ for (ii in 1:length(files)) {
     levels(class_train) = classes_levels[[ii]]
     levels(class_test) = classes_levels[[ii]]
     
-    cat("\n---------------\nNormalize PC Data...\n---------------\n")
-    pc_train_mean = apply(pc_train, 2, mean)
-    pc_train_sd = apply(pc_train, 2, sd)
-    # Train
-    z_pc_train = sweep(pc_train, 2, pc_train_mean, "-")
-    z_pc_train = sweep(z_pc_train, 2, pc_train_sd, "/")
-    # Test
-    z_pc_test = sweep(pc_test, 2, pc_train_mean, "-")
-    z_pc_test = sweep(z_pc_test, 2, pc_train_sd, "/")
-    # Valid
     colnames(z_pc_train) = paste('PC_', seq(1,ncol(z_pc_train)), sep = '')
     colnames(z_pc_test) = paste('PC_', seq(1,ncol(z_pc_test)), sep = '')
     

@@ -18,22 +18,17 @@ In other words, workflow was as follows:
 Mainly used for preprocessing and output data files, running classical classifiers, evaluating and plotting performance measures.
 
 #### R/dataScripts
-- lumAB_output_serial_dilutions.pca.R: Loads data with all features, performs PCA, outputs serial dilutions. Outputs a separate .mat file for each cut of the data. Note: need to run another Matlab script to combine all .mat files for each cut into a single .mat file 
+- output_serial_dilutions_pca_data.R: Loads data with all features, performs PCA, outputs serial dilutions. Outputs a separate .mat file for each cut of the data. Note: need to run another Matlab script to combine all .mat files for each cut into a single .mat file 
 - output_bootstrap_resamples_data_for_DW.R: Analagous script for bootstrap resamples.
-- output_6cancer_bootstrap_resamples_for_DW.R: Script for output 6 cancer data. Used because R is pretty terrible at memory management. 
-
-#### R/runScripts
-- lumAB_serial_dilutions.R: Wuxi version of code. Explicitly writes out classical approaches, save mean and std in .txt files
-- lumAB_serial_dilutions_cl.R and lumAB_serial_dilutions_cl2.R: Version of code. Writes out classical approaches in loops. Saves .RDS file with more metrics. Consider adding a few lines (taken from lumAB_serial_dilutions.R) to output mean and std in .txt files. Split into two scripts for running on hpc
-- all_bootstrap_resamples.R: Runs binomial bootstrap resamples. 
+- output_lumAB_genes_for_DW.R: Output .mat files for lumAB using top 44 genes from PC1 (load preexisting gene-name file).
+- output_6cancer_bootstrap_resamples_for_DW.R: Script for output 6 cancer data. Used because R is not great at memory management. 
+- output_6cancer_serial_diltuions_pca.R: output .mat files for 6cancer with serial dilutions (incremental decrease) of data. Takes commandline arguments in order to have better memory management. 
+- run_6cancer_output_R.sh: script file to run output 6cancer scripts in embarrassingly parallel fashion on a cluster.
 
 #### R/analysisScripts
 - bootstrap_resamples_output_\{dw,sa\}_rds.R: From DW (or SA) .mat files with actual and predicted labels generates .rds file for bootstrap resamples.
 - lumAB_serial_dilutions_output_\{dw,sa\}_rds.R: From DW (or SA). mat files with actual and predicted labels generates .rds file for lumAB serial dilutions.
 - \{bootstrap_resamples_,lumAB_serial_dilutions\}_plots.R: Generates plots for bootstrap resamples or (lumAB serial dilutions). Classical data is in mean and std text files, SA and DW files are saved as .rds files. Should standardize output format.
-
-#### R/archive
-Contains old scripts used to generate data outputs, plots. 
 
 ### Python files
 Mainly used for running DW

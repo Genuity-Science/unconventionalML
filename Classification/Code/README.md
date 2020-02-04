@@ -22,13 +22,29 @@ Mainly used for preprocessing and output data files, running classical classifie
 - output_bootstrap_resamples_data_for_DW.R: Analagous script for bootstrap resamples.
 - output_lumAB_genes_for_DW.R: Output .mat files for lumAB using top 44 genes from PC1 (load preexisting gene-name file).
 - output_6cancer_bootstrap_resamples_for_DW.R: Script for output 6 cancer data. Used because R is not great at memory management. 
-- output_6cancer_serial_diltuions_pca.R: output .mat files for 6cancer with serial dilutions (incremental decrease) of data. Takes commandline arguments in order to have better memory management. 
-- run_6cancer_output_R.sh: script file to run output 6cancer scripts in embarrassingly parallel fashion on a cluster.
+- output_6cancer_serial_dilutions_pca.R: output .mat files for 6cancer with serial dilutions (incremental decrease) of data. Takes commandline arguments in order to have better memory management. 
+- Notes: 
+    - basically all files can be run with commandline arguments. A simple wrapper script can be written to run on the cluster, embarrassingly parallel.
+    - to save time for both the conventional and annealing-based approaches, .mat files are used as the inputs with all splits contained within. This seemed preferable to loading the entire data matrix each time, performing PCA, and then moving forward.
+
+#### R/runScripts
+- \{6cancer,all\}\_bootstrap_resamples.R: Runs conventional approaches on \{6cancer, all binomial\} datasets. Outputs .RDS files. 
+- \{6cancer,\}\_serial_dilutions_cl.R: Runs conventional approaches on \{6cancer, binomial\} fractional decrease of training datasets. Outputs .RDS files
+- lumAB_diffexp_bootstrap_resamples.R: Runs conventional approaches on genes from differential expression. Outputs .RDS files. 
+- Notes: all files can be run with commandline arguments to facilitate running on a cluster. Rather than loading the splits, data is precomputed and saved in .mat files. 
 
 #### R/analysisScripts
-- bootstrap_resamples_output_\{dw,sa\}_rds.R: From DW (or SA) .mat files with actual and predicted labels generates .rds file for bootstrap resamples.
-- lumAB_serial_dilutions_output_\{dw,sa\}_rds.R: From DW (or SA). mat files with actual and predicted labels generates .rds file for lumAB serial dilutions.
-- \{bootstrap_resamples_,lumAB_serial_dilutions\}_plots.R: Generates plots for bootstrap resamples or (lumAB serial dilutions). Classical data is in mean and std text files, SA and DW files are saved as .rds files. Should standardize output format.
+- \{6cancer,\}output_bootstrap_resamples_rds.R: From DW (or SA, Rand, Field) .mat files with actual and predicted labels generates .rds file for \{6cancer, binomial\}bootstrap resamples.
+- output\_\{6cancer,\}_serial\_dilutions_rds.R: From DW (or SA, Rand Field). mat files with actual and predicted labels generates .rds file for \{6cancer, binomial\} serial dilutions.
+- \{bootstrap_resamples\_,lumAB_serial_dilutions\}\_plots.R:
+- plot_bootstrap_resamples_stacked.R: Generates stacked plot for binomial bootstrap resamples. Data files for both conventional and annealing-based methods are saved in output/  
+- plot_bootstrap_resamples\_\{6cancer,lumAB_gene\}.R: Generates for \{6cancer, lumAB gene\} bootstrap resamples. Data files for both conventional and annealing-based methods are saved in output/  
+- plot_serial_dilutions.R: Generates plots for incremental decrease of training data. Can be used for binomial or 6cancer data.
+- wilcox_rank_sum_v2.R: Takes the metrics from different splits of data and calculates Wilcoxon rank sum test to generate p-value of hypothesis that two populations are from the same distribution.
+- Notes:
+    - These scripts can be used after running conventional ML (R/runScripts) and annealing-based (python/runScripts then matlab/analysisScripts) methods
+    - annealing based approaches generate .mat files with predictions. \*output\* compiles the predictions into an .RDS file that has the same format as the conventional ML methods
+    - plot\*.R generates plots used in the paper
 
 ### Python files
 Mainly used for running DW
@@ -46,24 +62,25 @@ Mainly used for combining DW (and SA) output solutions.
 - analyzeMultinomialResults.m: Main function to analyze results when using multinomial regression as model. Less updated than analyzeLogisticResults.m
 - printSACV.m: Function to print instance files for SA.
 - getSACVSols.m: Function to read in solutions and save .mat file after running SA.
+- the other files are helper functions that are called in other scripts. 
 
 The rest of files are helper functions that might occasionally want to call separately. Probably could be further condensed. 
 
 #### matlab/dataScripts
-- wrap_print_SA_bootstrap_resamples.m: Script to provide parameters to print SA files
+- wrap_print_SA_\{bootstrap_resamples,serial_dilutions\}.m: Script to provide parameters to print SA files for \{bootstrap resamples, fractional decrease of training data\}. 
 - combine_mat_files.m: Script to combine .mat files output from R into a single .mat file 
 
 #### matlab/analysisScripts
-- analyze_bootstrap_resamples.m: Simplified version of analysis script for bootstrap resamples. There are additional parameters that could choose to tune. See analyze_lumAB_serial_dilutions.m
-- analyze_lumAB_serial_dilutions.m: Analysis script for bootstrap resamples. Does a grid search over possible parameters to improve performance.
-- analyze_lumAB_serial_dilutions_simple.m: Analysis script for bootstrap resamples. Uses a predefined set of parameters. 
-- analyze_SA_bootstrap_resamples.m: Analysis script for bootstrap resamples with SA.
-- analyze_SA_lumAB_serial_dilutions.m: Analysis script for lumAB serial dilutions with SA.
+- analyze_bootstrap_resamples\_\{simple,SA,rand,field\}.m: Simplified version of analysis script \{DW,SA,Rand,Field\} for bootstrap resamples with select parameters for post_processing.  
+- analyze_serial_dilutions\_\{simple,SA,rand,field\}.m: Analysis script for incremental decrease of training data. Uses a predefined set of parameters. 
+- analyze_6cancer\_\{bootstrap_resamples,serial_dilutions\}\_\{simple,SA,rand,field\}.m Analysis script for annealing-based methods of 6cancer \{bootstrap resamples, incremental decrease of training data\}. 
 - compare_bootstrap_resamples_energies.m: Compare DW and SA energy distributions for bootstrap resamples.
 - compare_lumAB_serial_dilutions_energies.m: Compare DW and SA energy distributions for seiral dilutions.
-- get_SA_\{bootstrap_resamples,lumAB_serial_dilutions\}_sols.m: Read in SA solutions for bootstrap resamples and lumAB serial dilutions
-- output_\{bootstrap_resamples,lumAB_serial_dilutions\}_preds_for_R.m: output .mat file with predicted and actual labels for analysis with R. Should output the files in analyze\*.m, but in case want to output predictions from another results file
-- wrap_analyze_multinomial_solutions.m: Wrapper script for analyzing multinomial solutions. Might be slightly out of date.
+- output_serial_dilutions_preds_for_R.m: Simple wrapper function to output .mat files for predictions for incremental decrease of training data.
+
+#### matlab/SAScripts/
+- get_SA_\{bootstrap_resamples,serial_dilutions\}\_sols.m: Wrapper function to read SA output files. 
+- the other files are helper functions for reading and printing SA files 
 
 ### SA
 - https://arxiv.org/abs/1401.1084 for paper and original source code

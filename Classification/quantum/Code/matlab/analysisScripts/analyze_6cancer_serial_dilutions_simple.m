@@ -1,4 +1,4 @@
-function [results,testperf] = analyze_6cancer_serial_dilutions_simple(fracs,d,saveFlag)
+function [results,testperf] = analyze_6cancer_serial_dilutions_simple(fracs,d,saveFlag,cinits)
 % Analysis script for multinomial. Try many different evaluation metrics (auc, 
 % balanced accuracy, log loss),ways of combining solutions (iterative, 
 % average), number of solutions to combine (20,100). See also
@@ -9,7 +9,8 @@ if nargin < 3
     saveFlag = false;
 end
 clearvars results testperf 
-cinits = 30;%[1 5 8 10 30];
+%cinits = [1 5 8 10 30];30cinits = [8];
+%cinits = [30];
 dir_name = ['~/Dropbox-Work/Wuxi/Results/' d '_splits/'];
 for k = 1 : length(cinits)
     cinit = cinits(k);
@@ -20,6 +21,7 @@ for k = 1 : length(cinits)
             '_cinit_' num2str(cinit,'%1.1f') '_ri_out_at_5_nr_1000.mat']) 
         for m = 1 : length(out)
             sols = cellfun(@(x) x{1},out{m},'uniformoutput',false);
+    %        sols = cellfun(@(x) x(1:5,:),sols,'uniformoutput',false);
             [r,t] = analyzeMultinomialResults(sols,traindatas{m},valdatas{m},...
                 'metric','acc','nSols',20,'uniqueFlag',true,'lambdas',0,...
                 'iterFlag',false,'testFlag',true);

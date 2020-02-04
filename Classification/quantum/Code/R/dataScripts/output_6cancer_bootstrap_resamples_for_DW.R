@@ -12,14 +12,11 @@ library(flashpcaR)
 
 # identify dataset and load 
 f = "6cancer"
-all_data=read_feather("~/Dropbox-Work/Wuxi/Data/data5_6cancer_all_normalized.feather")
-block_path = '~/Dropbox-Work/Wuxi/Results/'
-all_labels = all_data[,1]
+all_data=read_feather("/boston_scratch/TCGA_Pan6Cancer/combinedData/data5_6cancer_all.feather")
+block_path = '/boston_ailab/users/rli/quantum/Data/'
+y_data = all_data$cancer
 
 # fix labels so that don't have space in them
-y_data = all_labels[[1]]
-y_data = gsub(" ", "_", y_data, fixed = TRUE)
-y_data = as.factor(y_data)
 x_data = all_data[,-1]
 
 # Run name
@@ -35,18 +32,22 @@ n_splits = 100
 n_rows = nrow(all_data)
 n_cols = ncol(x_data)
 #n_tr = nrow(train_data)
-n_tr = round(0.8*n_rows)
+#n_tr = round(0.8*n_rows)
 
-splits=as.matrix(read.table("~/Dropbox-Work/Wuxi/Data/6cancer_bootstrap_resamples.txt"))
-# splits = matrix(0,nrow=n_splits,ncol=n_tr) 
+splits=as.matrix(read.table("/boston_ailab/users/rli/quantum/Data/6cancer_bootstrap_resamples.txt",header=T))
+#   splits = createDataPartition(y_data, times = n_splits, p = 0.8)
+#split_name = "/boston_ailab/users/rli/quantum/Data/6cancer_bootstrap_resamples.txt"
+   # Save the splits
+#   cat("\n---------------\nSave Splits...\n---------------\n")
+#   write.table(split_name,x=as.data.frame(splits),quote=F,row.names=F,sep='\t')
 j = as.numeric(args[1])
 cat(paste("\nSplit ", as.character(j) ,"\n", sep=''))
 # Split Labels
-class_train = y_data[splits[j,]]
-class_test = y_data[-splits[j,]]
+class_train = y_data[splits[,j]]
+class_test = y_data[-splits[,j]]
 # Split Data
-data_train = x_data[splits[j,],]
-data_test = x_data[-splits[j,],]
+data_train = x_data[splits[,j],]
+data_test = x_data[-splits[,j],]
 # Remove Zero Variance
 train_var = apply(data_train, 2, sd)
 no_var_idx = which(train_var == 0.0)

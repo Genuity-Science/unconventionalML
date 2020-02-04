@@ -47,8 +47,8 @@ i = as.numeric(args[1])
 j = as.numeric(args[2])
 
 # load data 
-train_data = read_feather("/home/richard/Dropbox-Work/Wuxi/Data/data5_6cancer_train_normalized.feather")
-test_data = read_feather("/home/richard/Dropbox-Work/Wuxi/Data/data5_6cancer_test_normalized.feather")
+train_data = read_feather("/boston_scratch/TCGA_Pan6Cancer/combinedData/data5_6cancer_train.feather")
+test_data = read_feather("/boston_scratch/TCGA_Pan6Cancer/combinedData/data5_6cancer_test.feather")
 
 # identify dataset and load 
 train_labels = as.factor(gsub(" ","_",train_data$cancer,fixed=TRUE))
@@ -57,7 +57,7 @@ train_data = train_data[,-1]
 test_data = test_data[,-1]
 
 # Run name
-block_path = '~/Dropbox-Work/Wuxi/Data/6cancer_splits/'
+block_path = '/boston_ailab/users/rli/quantum/Data/6cancer_splits/'
 dir.create(block_path)
 
 n_pc = 13
@@ -88,19 +88,34 @@ class_exp_test = c(class_test, class_valid)
 # Split Data
 data_train = train_data[splits[[j]],]
 data_test = train_data[-splits[[j]],]
+data_valid = test_data 
 # Remove Zero Variance
 train_var = apply(data_train, 2, sd)
 no_var_idx = which(train_var == 0.0)
 if (length(no_var_idx) > 0) {
   data_train = data_train[, -no_var_idx]
   data_test = data_test[, -no_var_idx]
-  data_valid = test_data[, -no_var_idx]
+  data_valid = data_valid[, -no_var_idx]
+  train_var = train_var[-no_var_idx]
 }
-# Normalize All Data
+  # Normalize All Data
 cat("\n---------------\nNormalize Data...\n---------------\n")
 x_train = data_train
 x_test = data_test
 x_valid = data_valid
+
+train_mean = apply(x_train,2,mean)
+train_sd = train_var 
+
+x_train = sweep(x_train, 2, train_mean, "-")
+x_train = sweep(x_train, 2, train_sd, "/")
+# Test
+x_test = sweep(x_test, 2, train_mean, "-")
+x_test = sweep(x_test, 2, train_sd, "/")
+# Valid
+x_valid = sweep(x_valid,2,train_mean,"-")
+x_valid = sweep(x_valid,2,train_sd,"/")
+
 # Combo Valid + Test
 x_exp_test = rbind(x_test, x_valid)
 

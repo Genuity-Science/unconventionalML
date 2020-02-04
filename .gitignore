@@ -1,2 +1,9 @@
 # Ignore folder
-classification/quantum/Results/
+Classification/quantum/Results/
+Classification/quantum/Data/
+
+# Ignore swp
+*.swp
+*.swo
+*.RDS
+*.Rhistory

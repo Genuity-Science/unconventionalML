@@ -1,5 +1,5 @@
 """
-Script to run incremental decrease with dataset given by filename f (see line 22)
+Script to run bootstrap resamples with 6cancer dataset. 
 """
 
 # import packages
@@ -10,17 +10,16 @@ file_path = '/home/richard/Dropbox-Work/Wuxi/'
 sys.path.insert(1,os.path.join(file_path + 'Code/python'))
 import DW_utils
 
-# can try different lambda
+# try different lambdas, though cinit seems to be more relevant parameter for DW
 #lambdas = [0,0.5,2]
 embedding = pickle.load(gzip.open(file_path + '/Embeddings/ISIK44.pkl.gz'))
 
-# define the list of fractions (may differ based on the dataset)
-fracs = np.r_[0.06, np.arange(0.1,1.0,0.05)]
+# get the list of fractions 
+#fracs = np.r_[0.02, np.arange(0.05,1.0,0.05)]
+fracs = np.r_[0.06,np.arange(0.1,1.0,0.05)]
 frac_str = np.array(str.split(str(fracs).strip('[]')))
-
-cinits = [12.0, 16.0]
-f = 'ERpn'
-
+cinits = [8.0]
+f = 'ERpn' # lumAB
 for cinit in cinits :
     for frac in frac_str:
 
@@ -34,9 +33,7 @@ for cinit in cinits :
         # initialize np array to hold outputs
         outlist = np.empty(len(traindatas),dtype=object)
         for n in range(len(traindatas)):
-            out = DW_utils.runCV(traindatas[n], [0], embedding, solver_name='ISI', 
-                    num_reads=1000, num_gauges=10,coupling_init=cinit,
-                    stop_point=-0.01,method='vote',annealing_time=5)
+            out = DW_utils.runCV(traindatas[n], [0], embedding, solver_name='ISI', num_reads=1000, num_gauges=10,coupling_init=cinit,stop_point=-0.01,method='vote',annealing_time=5)
             outlist[n] = out
 
         # save 

@@ -8,7 +8,11 @@ for n = 1 : 100
         tmp(tmp>0.5) = 1; 
         sols{m,1} = tmp; 
     end
-    [results(n),testperf(n)] = analyzeMultinomialResults(sols,traindatas{n},testdatas{n},...
+    tdata = traindatas{n};
+    tdata(:,2:end) = tdata(:,2:end)*2;
+    tstdata = testdatas{n};
+    tstdata(:,2:end) = tstdata(:,2:end)*2;
+    [results(n),testperf(n)] = analyzeMultinomialResults(sols,tdata,tstdata,...
                     'metric','acc','nSols',20,'uniqueFlag',true,'lambdas',0,...
                                 'iterFlag',false);
     [~,~,y_pred_trains{n}] = getMultinomialAcc(mean(cell2mat(results(n).TestItSols)),traindatas{n});
@@ -21,5 +25,9 @@ tname = 'rand_nsols20_ntotsols1000_testperf';
 eval([rname '=results;'])
 eval([tname '=testperf;'])
 
-save([base_dir 'results.mat'],rname,tname,'-append')
+try
+    save([base_dir 'results.mat'],rname,tname,'-append')
+catch
+    save([base_dir 'results.mat'],rname,tname)
+end
 save([base_dir 'rand_nsols20_ntotsols1000_pred_for_R'],'y_*')

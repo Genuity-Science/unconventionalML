@@ -29,7 +29,9 @@ for p = 1 : length(nTotSols);
             %       not used for training in the training cut
             load(['~/Dropbox-Work/Wuxi/Data/' d '_splits/frac_' ...
                     num2str(fracs(n)) '_data_resamples.mat']) 
-            
+        
+%            load('~/Dropbox-Work/Wuxi/Results/lumAB_splits/rand_sols','rand_pc44_nsols5_sols');
+%            rand_sols = rand_pc44_nsols5_sols;
             % load result file, output in variable named out
             % out is a cell array of cells. Each cell is 1x3, with the first
             % cell being the solutions, the second the coupling strength, and the 

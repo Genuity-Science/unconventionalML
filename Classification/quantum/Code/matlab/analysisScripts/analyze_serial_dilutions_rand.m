@@ -6,8 +6,9 @@ function [results,testperf] = analyze_serial_dilutions_rand(fracs,d,saveFlag)
 % analyze_lumAB_serial_dilutions.m for more parameters that can try).  
 
 % the fraction of the original training data to use
-nTotSols =1000; % [5 10 20 100 1000];
-nSols = 20;% [1 5 10 20 100 1000];
+nTotSols =1000; %[5 50]; % [20 100 1000];
+nMaxSols = 1000;
+nSols = 20;%[1 5 10 20 50];% 5 10 20 100 1000];
 if strcmp(d,'6cancer')
     multiFlag = true;
     Nfeats = 65;
@@ -45,12 +46,14 @@ for p = 1 : length(nTotSols);
             % third the fraction of unbroken solutions. See runDW() in DW_utils.py
             
             for m = 1 : length(traindatas)
+                tic
                 for k = 1 : 3
-                    tmp = rand(1000,Nfeats);;
+                    tmp = rand(nMaxSols,Nfeats);;
                     tmp(tmp<=0.5) = -1;
                     tmp(tmp>0.5) = 1;
                     rand_sols{m,n}{k,1} = tmp;
                 end
+                ti = toc;
                 trdata = traindatas{m};
                 valdata = valdatas{m};
                 disp(sprintf('Frac: %1.2f Iteration: %d',fracs(n),m))
@@ -63,37 +66,38 @@ for p = 1 : length(nTotSols);
                            'nSols',nSols(ii), 'lambdas',[0],'metric','acc',...
                            'biasFlag',false);
                     else
-                [r,t] = analyzeLogisticResults(tmp_sols,traindatas{m},...
+                trdata = traindatas{m};
+                trdata(:,2:end) = trdata(:,2:end)*1;
+                [r,t] = analyzeLogisticResults(tmp_sols,trdata,...
                         valdatas{m}, 'uniqueFlag', false, 'iterFlag', true, ...
                         'nSols', nSols(ii), 'lambdas',[0],'postProcess','test',...
-                        'biasFlag',false);
+                        'biasFlag',false,'metric','bacc');
                     end
                 r.frac = fracs(n);
                 t.frac = fracs(n);
+                r.time = ti;
                 results(n,m) = r;
                 testperf(n,m) = t;
             end
             clear *datas*
         end
 
-        rand_pc44_ntotsols_20_sols = rand_sols;
         if saveFlag
-
-            sname =  ['rand_pc44_ntotsols_' num2str(nTotSols(p)) '_sols'];
+            sname =  ['rand_ntotsols_' num2str(nTotSols(p)) '_sols'];
             eval([sname '=rand_sols;'])
             save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/rand_sols'],sname)
 
-            rname = ['rand_pc44_nsols_' num2str(nSols(ii)) '_ntotsols' ...
+            rname = ['rand_nsols' num2str(nSols(ii)) '_ntotsols' ...
                 num2str(nTotSols(p)) '_results'];
-            tname = ['rand_pc44_nsols_' num2str(nSols(ii)) '_ntotsols' ...
+            tname = ['rand_nsols' num2str(nSols(ii)) '_ntotsols' ...
                 num2str(nTotSols(p)) '_testperf'];
             eval([rname '= results;'])
             eval([tname '=testperf;']);
             try
-                save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/rand_pca_results'],...
+                save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/rand_results'],...
                     rname,tname,'-append')
             catch
-                save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/rand_pca_results'],...
+                save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/rand_results'],...
                     rname,tname)
             end
         end

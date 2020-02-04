@@ -18,7 +18,7 @@ for n = 1:length(fracs)
         filestem = [base_dir 'frac_' frac '_Inst' num2str(m)];
         inSfx = '.txt';
         out = getSACVSols(filestem,3,inSfx,outPfx,l_str);
-        sols{m} = {out.sols}';
+        sols{m} = reshape({out.sols}',3,[]);
     end
     save_name = ['frac_' frac '_SA' outPfx];
     save_name = strrep(save_name,'_out.dat','.mat');

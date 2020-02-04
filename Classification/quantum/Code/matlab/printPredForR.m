@@ -30,19 +30,27 @@
 %
 
 
-function printPredForR(sols,traindatas,testdatas,filename)
+function printPredForR(sols,traindatas,testdatas,filename,type)
+
+if nargin < 5
+    type = 'log';
+end
 
 sig = @(x)1./(1+exp(-x));
 
 for m = 1 : length(traindatas)
     trdata = traindatas{m};
     tstdata = testdatas{m};
-
-                y_trains(:,m) = trdata(:,1);
-                y_tests(:,m) = tstdata(:,1);
-                tmpsol = mean(cell2mat(sols{m}));
-                y_pred_trains(:,m) = sig(trdata(:,2:end)*tmpsol');
-                y_pred_tests(:,m) = sig(tstdata(:,2:end)*tmpsol');
-            end
+    y_trains(:,m) = trdata(:,1);
+    y_tests(:,m) = tstdata(:,1);
+    tmpsol = mean(cell2mat(sols{m}));
+    if strcmp(type,'log')
+        y_pred_trains(:,m) = sig(trdata(:,2:end)*tmpsol');
+        y_pred_tests(:,m) = sig(tstdata(:,2:end)*tmpsol');
+    else
+        [~,~,y_pred_trains{m}] = getMultinomialAcc(tmpsol,traindatas{m});
+        [~,~,y_pred_tests{m}] = getMultinomialAcc(tmpsol,testdatas{m});
+    end
+end
 
 save(filename,'y_*');

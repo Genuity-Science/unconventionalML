@@ -2,7 +2,7 @@
 base_dir = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/6cancer_bootstrap_resamples/';
 load('~/Dropbox-Work/Wuxi/Data/6cancer_bootstrap_resamples.mat')
 train_splits = get_split_idxs(size(traindatas{1},1),3);
-lambdas = 
+lambdas = 0;
 for n = 1 : 100
     trdata = traindatas{n};
     for m = 1 : length(lambdas)

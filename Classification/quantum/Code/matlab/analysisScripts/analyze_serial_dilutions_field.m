@@ -35,7 +35,7 @@ for n = 1 : length(fracs)
     for m = 1 : length(traindatas)
         trdata = traindatas{m};
         valdata = valdatas{m};
-
+        tic 
         for k = 1 : 3
             if multiFlag
                 [h,J] = generateMultinomial(trdata(train_splits{k},:));
@@ -44,6 +44,7 @@ for n = 1 : length(fracs)
             end
             field_sols{m}{k,1} = -sign(h)'; 
         end
+        field_time = toc;
         disp(sprintf('Frac: %1.2f Iteration: %d',fracs(n),m))
         if multiFlag 
             [r,t] = analyzeMultinomialResults(field_sols{m},traindatas{m},...
@@ -56,6 +57,7 @@ for n = 1 : length(fracs)
                 'postProcess','test','biasFlag',false);
         end 
         r.frac = fracs(n);
+        r.time = field_time;
         t.frac = fracs(n);
         results(n,m) = r;
         testperf(n,m) = t;
@@ -64,8 +66,8 @@ for n = 1 : length(fracs)
     clear *datas*
 end
 
-rname = 'field_pc44_results';
-tname = 'field_pc44_testperf';
+rname = 'field_results';
+tname = 'field_testperf';
 eval([rname '= results;'])
 eval([tname '=testperf;']);
 
@@ -73,8 +75,8 @@ if saveFlag
     save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/field_sols'],'field_sols');
     
     try
-        save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/field_pca_results'],rname,tname,'-append')
+        save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/field_results'],rname,tname,'-append')
     catch
-        save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/field_pca_results'],rname,tname)
+        save(['~/Dropbox-Work/Wuxi/Results/' d '_splits/field_results'],rname,tname)
     end
 end

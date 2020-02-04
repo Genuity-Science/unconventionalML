@@ -1,4 +1,4 @@
-function [pred_classes,acc,bacc,f1] = predClasses(sol,data,bias,fn,biasFnFlag,order)
+function [pred_classes,acc,bacc,f1] = predClasses(sol,data,bias,fn,biasFnFlag,order,possible_labels)
 % predicts classes given solution and data for binary classification.
 % [pred_classes,acc,bacc] = predClasses(sol,data,bias,fn,biasFnFlag)
 %
@@ -19,6 +19,9 @@ function [pred_classes,acc,bacc,f1] = predClasses(sol,data,bias,fn,biasFnFlag,or
 %
 %   order: numeric. Default: [1,2]. If [1,2] means that 0 is negative label and
 %       1 is positive. If [2,1] means that 0 is positive and 1 is negative.
+%
+%   possible_labels: numeric. Default: [0, 1]. Means that possible labels are 0 
+%       or 1. 
 %
 %   Returns:
 %   --------
@@ -41,7 +44,9 @@ end
 if nargin < 6
     order = [1,2];
 end
-
+if nargin < 7
+    possible_labels = [0 1];
+end
 if biasFnFlag 
     probs = fn(data(:,2:end)*sol'+bias);
 else 
@@ -50,7 +55,7 @@ end
 
 pred_classes = probs>=0.5;
 acc = nnz(pred_classes == data(:,1))/length(pred_classes);
-cm = confusionmat(data(:,1),double(pred_classes));
+cm = confusionmat(data(:,1),double(pred_classes),'order',possible_labels);
 cm = cm(order,order);
 bacc = (cm(1,1)/sum(cm(1,:)) + cm(2,2)/sum(cm(2,:)))*0.5;
 pr = cm(2,2)/(cm(2,2)+cm(2,1));

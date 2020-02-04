@@ -1,4 +1,4 @@
-function [SA_results,SA_testperf] = analyze_serial_dilutions_SA(fracs,d,saveFlag,sfx)
+function [SA_results,SA_testperf] = analyze_serial_dilutions_SA(fracs,d,saveFlag,sfx,type)
 
 % Analysis script for lumAB serial dilutions. Serial dilutions refer to 
 % starting with a certain cut of the training data and successively decreasing
@@ -11,14 +11,22 @@ sig = @(x) 1./(1+exp(-x));
 
 % suffix for SA instance names
 dir_name = ['~/Dropbox-Work/Wuxi/Results/' d '_splits/'];
-nTotSols = 1000; %[1 5 20 50 100];
-nSols = 20; %[1 5 10 20 50 100];
-b1s = [0.03 ];
+%nTotSols = [1 5 20 50 100];
+%nSols = [1 5 10 20 50 100];
+nTotSols=1000;
+nSols = 20;
+b1s = [0.03];
+if nargin < 5
+    type = 'ising';
+end
+
 if strcmp(d,'6cancer')
     multiFlag = true;
 else
     multiFlag = false;
 end
+
+
 for k = 1 : length(b1s)
     b1 = num2str(b1s(k));
     b1 = strrep(b1,'.','d');
@@ -53,7 +61,7 @@ for k = 1 : length(b1s)
                     exptstdata = exptestdatas{m};
                     % to save time only analyzing first column, which is lambda=0
                     tmp_sols = cellfun(@(x) x(randperm(1000,nTotSols(p)),:),...
-                        sols{m}(:,1),'uniformoutput',false);
+                        sols{m},'uniformoutput',false);
                     if multiFlag 
                         [r,t] = analyzeMultinomialResults(tmp_sols,trdata,...
                            valdata, 'uniqueFlag', false, 'iterFlag', true, ...
@@ -63,7 +71,7 @@ for k = 1 : length(b1s)
                     [r,t] = analyzeLogisticResults(tmp_sols, ...
                             trdata,valdata, 'uniqueFlag', false, 'iterFlag', true, ...
                             'nSols', nSols(ii), 'lambdas',[0],'postProcess','test',...
-                            'biasFlag',false);
+                            'biasFlag',false,'type',type);
                     end
                     r.frac = fracs(n);
                     t.frac = fracs(n);
@@ -72,16 +80,16 @@ for k = 1 : length(b1s)
                 end
             end
             s_sfx = strrep(sfx,'1000','1k');
-            sar = ['SA' s_sfx '_nsols_' num2str(nSols(ii)) '_ntsols_' num2str(nTotSols(p)) '_results'];
-            sat = ['SA' s_sfx '_nsols_' num2str(nSols(ii)) '_ntsols_' num2str(nTotSols(p)) '_testperf'];
+            sar = ['SA' s_sfx '_nsols' num2str(nSols(ii)) '_ntsols' num2str(nTotSols(p)) '_results'];
+            sat = ['SA' s_sfx '_nsols' num2str(nSols(ii)) '_ntsols' num2str(nTotSols(p)) '_testperf'];
             sar = strrep(sar,'-','_');
             sat = strrep(sat,'-','_');
             eval([sar '=SA_results;' sat '=SA_testperf;']);
             if saveFlag
                 try 
-                    save([dir_name 'SA_pca_results'],'-append',sar,sat)
+                    save([dir_name 'SA_results'],'-append',sar,sat)
                 catch
-                    save([dir_name 'SA_pca_results'],sar,sat)
+                    save([dir_name 'SA_results'],sar,sat)
                 end
             end
         end

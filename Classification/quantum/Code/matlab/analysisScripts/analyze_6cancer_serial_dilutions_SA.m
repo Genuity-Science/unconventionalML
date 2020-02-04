@@ -8,8 +8,10 @@ function [SA_results,SA_testperf] = analyze_6cancer_serial_dilutions_SA(fracs,d,
 
 % suffix for SA instance names
 dir_name = ['~/Dropbox-Work/Wuxi/Results/' d '_splits/'];
-nTotSols=1000; %[1 5 20 50 100];
-nSols = 20; %[1 5 10 20 50 100];
+%nTotSols = [1 5 20 50 100];
+%nSols = [1 5 10 20 50 100];
+nTotSols=1000;
+nSols = 20;
 b1s = [0.03 ];
 for k = 1 : length(b1s)
     b1 = num2str(b1s(k));

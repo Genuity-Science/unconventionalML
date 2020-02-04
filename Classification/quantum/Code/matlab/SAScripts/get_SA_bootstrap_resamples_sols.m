@@ -1,6 +1,6 @@
 % Script to get SA bootstrap solutions from SA instance files.
 
-datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB','lumAB_gene'};
+datasets = {'brcaMatchedTN','ERpn','kirckirp','luadlusc','lumAB','lumAB_gene','6cancer'};
 %l_str = {'0','1d8','1d4','1d2','1','2','4','8'};
 l_str = {'0'};
 % Suffix for SA instance files. nr is number of repetitions, nswps is num. of 
@@ -13,13 +13,19 @@ for p = 1 : length(b1s)
     sfx = strrep(sfx,'.','d');
     sfx = [sfx '_out.dat'];
 
-    for n = 1 : 1 %6 : length(datasets)    
+    for n = [6] %6 : length(datasets)    
+        if n == 7 
+            pc = '13';
+            save_name = ['cancer6_SA_pc' pc sfx '_sols'];
+        else
+            pc = '44';
+            save_name = [datasets{n} '_SA_pc' pc sfx '_sols'];
+        end
         base_dir =[ '~/Dropbox-Work/Wuxi/SA/bootstrap_resamples/' datasets{n} '/'];
         for m = 1 : 100
-            out = getSACVSols([base_dir 'Inst' num2str(m)],3,'.txt',sfx,l_str);
+            out = getSACVSols([base_dir 'Inst' num2str(m) '_pc' pc],3,'.txt',sfx,l_str);
             sols{m} = {out.sols}';
         end
-        save_name = [datasets{n} '_SA_pc44_' sfx '_sols'];
         save_name = strrep(save_name,'out.dat','');
         save_name = strrep(save_name,'-','_');
         save_name = strrep(save_name,'__','_');

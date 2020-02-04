@@ -46,20 +46,27 @@ predict_correct_pca = function(pc_res, x, n_pc) {
   }
   return(x_pred)
 }
+doPCA = TRUE
 
-# load data 
-d = 'ERpn' #lumAB, ERpn, luadlusc
-train_data = read_feather(paste("/home/richard/Dropbox-Work/Wuxi/Data/data5_", d, "_train_normalized.feather",sep=""))
-test_data = read_feather(paste("/home/richard/Dropbox-Work/Wuxi/Data/data5_", d, "_test_normalized.feather",sep=""))
+args = commandArgs(trailingOnly=TRUE)
+i = as.numeric(args[1])
+st_idx = as.numeric(args[2])
+stop_idx = as.numeric(args[3])
+files = c('lumAB','ERpn')
+#d = 'lumAB' #lumAB, ERpn, luadlusc
+d = 'ERpn'
+base_dir = '/boston_ailab/users/rli/quantum/Data/updated/'
+train_data = read_feather(paste(base_dir,"data5_", d, "_train.feather",sep=""))
+test_data = read_feather(paste(base_dir,"data5_", d, "_test.feather",sep=""))
 
 # relabel factors
 train_labels = as.factor(gsub(" ","_",train_data$cancer,fixed=TRUE))
 test_labels = as.factor(gsub(" ","_",test_data$cancer,fixed=TRUE))
 train_data = train_data[,-1]
 test_data = test_data[,-1]
-block_path = paste('/home/richard/Dropbox-Work/Wuxi/Data/', d, '_splits/',sep='')
+block_path = paste('/boston_ailab/users/rli/quantum/Data/', d, '_splits/',sep='')
 dir.create(block_path)
-pos_class = "Luminal_A" #Luminal_A (lumAB); Positive (ERpn) ; luad (luadlusc) 
+pos_class = "Positive" #Luminal_A (lumAB); Positive (ERpn) ; luad (luadlusc) 
 
 # Run name
 Sys.chmod(block_path, "777")
@@ -70,36 +77,37 @@ n_pc = 44
 n_genes = 44
 n_splits = 50
 # Split Frac Ranges
-low_fracs = seq(0.02, 0.2, 0.02)
-high_fracs = seq(0.30, 0.95, 0.05)
-all_fracs = c(rev(high_fracs), rev(low_fracs))
-
+# low_fracs = seq(0.02, 0.2, 0.02)
+# high_fracs = seq(0.30, 0.95, 0.05)
+# all_fracs = c(rev(high_fracs), rev(low_fracs))
+all_fracs = c(0.06,seq(0.1,0.95,0.05))
 # Set Min Threshold basd on PCs
-min_frac = (n_pc + 1) / nrow(train_data)
+# min_frac = (n_pc + 1) / nrow(train_data)
+min_frac = 0.0
 # Remove those that eclipse the min threshold
 rm_min_frac = which(all_fracs < min_frac)
 if (length(rm_min_frac) > 0) {
   all_fracs = all_fracs[-rm_min_frac]
 }
-
 ### Generate Splits
 ### Main Model Loop
-for (i in length(all_fracs):length(all_fracs)) {
+#for (i in seq(st_idx,length(all_fracs),stop_idx)) {
 
   cat(paste('\n', format(Sys.time(), "%H:%M"), '\n', sep=""))
   
-  # Split them up - if doing for the first time
-  splits = createDataPartition(train_labels, times = n_splits, p = all_fracs[i])
-  # Save the splits
-  cat("\n---------------\nSave Splits...\n---------------\n")
+  # # Split them up - if doing for the first time
+  # splits = createDataPartition(train_labels, times = n_splits, p = all_fracs[i])
+  # # Save the splits
+  # cat("\n---------------\nSave Splits...\n---------------\n")
   save_dir = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'_dir/',sep="")
+  dir.create(save_dir)
   split_name = paste(block_path, "split_lists_frac_", as.character(all_fracs[i]),'.txt',sep="")
-  write.table(split_name,x=as.data.frame(splits),quote=F,row.names=F,sep='\t')
+  # write.table(split_name,x=as.data.frame(splits),quote=F,row.names=F,sep='\t')
   
   splits=read.table(split_name,header=TRUE)
   
   # Run through # of Splits
-  for (j in 1:n_splits) {
+  for (j in seq(st_idx,n_splits,stop_idx)) {
     # load(split_name)
     
     cat(paste("\nFrac ", as.character(all_fracs[i]), " - Split ", as.character(j) ,"\n", sep=''))
@@ -111,22 +119,38 @@ for (i in length(all_fracs):length(all_fracs)) {
     # Split Data
     data_train = train_data[splits[[j]],]
     data_test = train_data[-splits[[j]],]
+    data_valid = test_data 
     # Remove Zero Variance
     train_var = apply(data_train, 2, sd)
     no_var_idx = which(train_var == 0.0)
+    train_sd = train_var 
     if (length(no_var_idx) > 0) {
       data_train = data_train[, -no_var_idx]
       data_test = data_test[, -no_var_idx]
-      data_valid = test_data[, -no_var_idx]
+      data_valid = data_valid[, -no_var_idx]
+      train_sd = train_sd[-no_var_idx]
     }
     # Normalize All Data
     cat("\n---------------\nNormalize Data...\n---------------\n")
     x_train = data_train
     x_test = data_test
     x_valid = data_valid
+
+    train_mean = apply(x_train,2,mean)
+    
+    x_train = sweep(x_train, 2, train_mean, "-")
+    x_train = sweep(x_train, 2, train_sd, "/")
+    # Test
+    x_test = sweep(x_test, 2, train_mean, "-")
+    x_test = sweep(x_test, 2, train_sd, "/")
+    # Valid
+    x_valid = sweep(x_valid,2,train_mean,"-")
+    x_valid = sweep(x_valid,2,train_sd,"/")
+    
     # Combo Valid + Test
     x_exp_test = rbind(x_test, x_valid)
 
+    if (doPCA) {
     cat("\n---------------\nPrincipal Components...\n---------------\n")
     # PC Model
     pc_res = switch_pca(x_train, n_pc = n_pc)
@@ -148,10 +172,16 @@ for (i in length(all_fracs):length(all_fracs)) {
     z_pc_train = cbind(class_train==pos_class,z_pc_train)
     z_pc_test = cbind(class_test==pos_class,z_pc_test)
     z_pc_valid = cbind(class_valid==pos_class,z_pc_valid)
+    }
+    else {
+      z_pc_exp_test = cbind(class_exp_test==pos_class,x_exp_test)
+      z_pc_train = cbind(class_train==pos_class,x_train)
+      z_pc_test = cbind(class_test==pos_class,x_test)
+      z_pc_valid = cbind(class_valid==pos_class,x_valid)
+    }
     writeMat(paste(save_dir,"resample_", as.character(j), "_data.mat", sep=''),
-              testdata=as.matrix(z_pc_test),valdata = data.matrix(z_pc_valid),
-              traindata=as.matrix(z_pc_train),exptest=as.matrix(z_pc_exp_test))
-
+             testdata=as.matrix(z_pc_test),valdata = data.matrix(z_pc_valid),
+             traindata=as.matrix(z_pc_train),exptest=as.matrix(z_pc_exp_test))
 #    Uncomment below to output the top genes based on pc1
 #    pc = flashpca(as.matrix(x_train), ndim = 1, stand = "sd", do_loadings = TRUE)
 #    ord=order(abs(pc$loadings[,1]),decreasing = TRUE)[1:n_genes] #rankings of top n_genes from PC1
@@ -184,4 +214,4 @@ for (i in length(all_fracs):length(all_fracs)) {
 #              traindata=as.matrix(z_train),exptest=as.matrix(z_exp_test))
 #    
     }
- }
+ #}

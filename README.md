@@ -6,8 +6,8 @@ Normalized train and test data matrices for binomial and six-cancer comparisons 
 https://nextcodehealth.sharepoint.com/:f:/s/quantumMachineLearning/Ep90ZgWnL5lDs5U6bkqtBGYB1foDUGMRoaB_UEEQY4KYrg?e=7WXSzT
 
 Login username and password:
-github_reviewer@nextcode.com
 
+github_reviewer@nextcode.com
 
 Knottur##Bolti13
 

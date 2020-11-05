@@ -8,3 +8,10 @@ Classification/quantum/Data/
 
 # Ignore R files
 *.Rhistory
+
+# Ignore tar files 
+*tar.gz
+
+# Ignore .pdf and .ai files
+*pdf
+*ai

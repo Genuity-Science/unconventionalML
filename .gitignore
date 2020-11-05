@@ -8,6 +8,7 @@ Classification/quantum/Data/
 
 # Ignore R files
 *.Rhistory
+*.RDS
 
 # Ignore tar files 
 *tar.gz
@@ -15,3 +16,6 @@ Classification/quantum/Data/
 # Ignore .pdf and .ai files
 *pdf
 *ai
+
+# Ignore MAC .DS_STORE
+*DS_Store

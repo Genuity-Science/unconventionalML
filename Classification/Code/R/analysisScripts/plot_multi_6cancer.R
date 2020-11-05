@@ -16,27 +16,30 @@ library(grid)
 # library(ggpubr)
 library(tidyr)
 
-method_levels = rev(c("SVM","SA","Ridge","RF","Random","NB","LASSO","Field","D-Wave"))
+# method_levels = rev(c("SVM","SA","Ridge","RF","Random","NB","LASSO","Field","D-Wave"))
 
-base_dir = '~/Dropbox-Work/Wuxi/Results/bootstrap_resamples/6cancer_bootstrap_resamples/'
+base_dir = '~/OneDrive - Genuity Science/Projects/quantumML/Classification/output/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
 # simulated annealing info
 all_sa_info = readRDS(paste(base_dir,"6cancer_bootstrap_resamples_sa_nsols20_ntotsols1000.RDS",sep=""))
 
 # D-Wave info
-all_dw_info = readRDS(paste(base_dir,"6cancer_bootstrap_resamples_dw_cinit8_nsols20_ntotsols1000.RDS",sep=""))
+all_dw_info = readRDS(paste(base_dir,"6cancer_bootstrap_resamples_dw_nsols20_ntotsols1000.RDS",sep=""))
 
 #Random info with 20 solutions
 all_rand_info = readRDS(paste(base_dir,"6cancer_bootstrap_resamples_rand_nsols20_ntotsols1000.RDS",sep=""))
 
 all_field_info = readRDS(paste(base_dir,"6cancer_bootstrap_resamples_field.RDS",sep=""))
+
+all_rbm_info = readRDS(paste(base_dir,"6cancer_rbm_save_all.RDS",sep=''))$info
+
 # classical info
-all_cl_info = readRDS(paste(base_dir,"6cancer_bootstrap_resamples_save.RDS",sep=""))
+all_cl_info = readRDS(paste(base_dir,"6cancer_multirun_save.RDS",sep=""))
 all_cl_info.1 <- all_cl_info$info
 
 # Combining DW, Classical, SA, IBM sim results in one data frame
-all_info = rbind(all_dw_info,all_cl_info.1,all_sa_info,all_rand_info,all_field_info)
+all_info = rbind(all_dw_info,all_cl_info.1,all_sa_info,all_rand_info,all_field_info,all_rbm_info)
 
 mean_stats = aggregate(.~method+dataset,all_info,mean)
 sem_stats = aggregate(.~method+dataset,all_info,sem)
@@ -70,6 +73,7 @@ algo_df <- algo_df %>%  mutate(method = str_replace(method, "rand", "Random"))
 algo_df <- algo_df %>%  mutate(method = str_replace(method, "field", "Field"))
 
 levels(algo_df$metric)=c("Accuracy","Bal.Accuracy","AUC","Precision","Recall","F1")
+method_levels = unique(algo_df$method)
 algo_df$method = factor(algo_df$method,levels=method_levels)
 nleg = length(levels(algo_df$method))
 bacc_algo_df = subset(algo_df,algo_df$metric %in% c("Bal.Accuracy")) 
@@ -124,7 +128,7 @@ tmp_df$bacc_order = group_order
 tmp_df = tmp_df %>% ungroup() %>% group_by(dataset,metric) %>% arrange(dataset,bacc_order) %>%
   unite("dataset_baccorder",dataset,bacc_order,sep="_",remove=FALSE) %>% ungroup()
 
-tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder)
+tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder,levels = unique(tmp_df$dataset_baccorder))
 
 p_test = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=metric)) + 
   geom_errorbar(aes(color=metric,width=0.1,ymin=(value-sem),ymax=(value+sem))) + 
@@ -132,4 +136,5 @@ p_test = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=metric)) +
   facet_wrap(vars(dataset),scales="free",nrow=nleg) + 
   theme_bw() + 
   scale_x_discrete(breaks=tmp_df$dataset_baccorder,labels=tmp_df$method) +
-  xlab("Algorithm") + ylab("Value") + labs(color="Metric")
+  xlab("Algorithm") + ylab("Value") + labs(color="Metric")  +
+  theme(legend.position="bottom",text=element_text(size=16)) 

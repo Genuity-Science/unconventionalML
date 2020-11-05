@@ -21,6 +21,7 @@ process_rds_file = function(dataraw,meth) {
   data=dataraw[[1]][0,]; colnames(data)[1]="Frac"
   sem=data
   for (i in 1:length(dataraw)){
+    # if (class(dataraw[[i]]) == 'data.frame') dataraw[[i]] = as.matrix(dataraw[[i]])
     data[i,]=colMeans(dataraw[[i]],na.rm=T)
     sem[i,]=apply(dataraw[[i]],2,function(x){std_err_mean(x[!is.na(x)])})
     sem[i,1]=dataraw[[i]]$frac[1]
@@ -84,55 +85,60 @@ process_cl_file = function(info){
   return(cl_df)
 }
 
-d = 'lumAB'
+d = 'ERpn'
+type = 'pca'
 # where annealing-type .RDS files are saved
-base_dir = paste('/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/quantum/Results/', d, '_splits/preds_for_R/',sep='')
+base_dir = paste('/Users/rli/OneDrive - Genuity Science/Projects/quantumML/Classification/output/',sep='')
 
 # where classical .RDS files are saved
-load_path = paste('/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/quantum/Results/', d, '_splits/',sep='')
+load_path = paste('/Users/rli/OneDrive - Genuity Science/Projects/quantumML/Classification/output/',sep='')
 
 # colors for plots
-summary_plotcolors = brewer.pal(9,"Paired")
+summary_plotcolors = brewer.pal(10,"Paired")
 
 nruns = 50
 
 # Read in Data -- LUMAB -- GENE
 # load classical machine learning algorithms
-clfile = paste(d,'_pca_cl_info_all.RDS',sep='')
+
+clfile = paste(d,'_sd_', type,'_cl_all_info.RDS',sep='')
 cldataraw = readRDS(paste(load_path,clfile,sep=''))
 cl_df = process_cl_file(cldataraw)
 
 # SA Results
 sfx = '_nsols20_ntotsols1000'
-#safile=paste(d,"_split_pca_performance_sa",sfx,"_2.RDS",sep="") # for 6cancer, have the _2.RDS
-safile=paste(d,"_split_pca_performance_sa",sfx,".RDS",sep="")
+safile=paste(d,'_',type,"_split_performance_sa",sfx,".RDS",sep="")
 sadataraw=readRDS(paste(base_dir,safile,sep='')) 
 sa_df = process_rds_file(sadataraw,"SA")
 
 # rand Results
-#randfile=paste(d,"_split_pca_performance_rand",sfx,"_2.RDS",sep="")
-randfile=paste(d,"_split_pca_performance_rand",sfx,".RDS",sep="")
+randfile=paste(d,'_',type,"_split_performance_rand",sfx,".RDS",sep="")
 randdataraw=readRDS(paste(base_dir,randfile,sep='')) 
 rand_df = process_rds_file(randdataraw,"Random")
 
 # field results
-#fieldfile=paste(d,"_split_pca_performance_field_2.RDS",sep='')
-fieldfile=paste(d,"_split_pca_performance_field.RDS",sep='')
+fieldfile=paste(d,'_',type,"_split_performance_field.RDS",sep='')
 fielddataraw=readRDS(paste(base_dir,fieldfile,sep='')) 
 field_df = process_rds_file(fielddataraw,"Field")
 
 all_cl_df = rbind(cl_df,sa_df,field_df,rand_df)
 
 # D-Wave Results
-dw_sfx = '_nsols20_ntotsols1000'
-#dwfile=paste(d,"_split_pca_performance_dw",dw_sfx,"_2.RDS",sep='')
-dwfile=paste(d,"_split_pca_performance_dw",dw_sfx,".RDS",sep='')
+dw_sfx = '_cinit8_nsols20_ntotsols1000'
+dwfile=paste(d,'_',type,"_split_performance_dw",dw_sfx,".RDS",sep='')
 dwdataraw=readRDS(paste(base_dir,dwfile,sep='')) 
 dw_df = process_rds_file(dwdataraw,"D-Wave")
 
+# RBM Results
+rbmfile=paste(d,'_',type,"_split_performance_RBM.RDS",sep='')
+rbmdataraw=readRDS(paste(base_dir,rbmfile,sep='')) 
+rbmdataraw = lapply(rbmdataraw,function(x){x[-2]}) # remove method
+rbm_df = process_rds_file(rbmdataraw,"RBM")
+
+
 # -------------------- #
 dw_df['Algorithm']="D-Wave"
-all_data_df=rbind(all_cl_df,dw_df)
+all_data_df=rbind(all_cl_df,rbm_df,dw_df)
 
 drop_fracs = 0.18 #c(0.05,0.15)
 all_data_df$Frac = as.factor(all_data_df$Frac)
@@ -147,7 +153,7 @@ baccdata = all_data_df %>%
   arrange(Algorithm,Frac)
 baccdata$Algorithm = factor(baccdata$Algorithm,levels=sort(unique(baccdata$Algorithm)))
 p_bacc = ggplot(data = baccdata, aes(x=Frac, y=value)) + 
-    geom_point(aes(colour = Algorithm,shape=Algorithm),size=3) + scale_shape_manual(values=c(5:8,15:19)) + 
+    geom_point(aes(colour = Algorithm,shape=Algorithm),size=3) + scale_shape_manual(values=c(5:9,15:19)) + 
     geom_line(aes(colour = Algorithm),size=0.75) + 
     geom_errorbar(aes(colour = Algorithm,width=0.01,
                       ymin=(value-sem),ymax=(value+sem)),size=0.75) + 
@@ -160,18 +166,31 @@ p_bacc = ggplot(data = baccdata, aes(x=Frac, y=value)) +
 
 #p_bacc + theme(legend.position="bottom",legend.direction = "horizontal") + scale_x_continuous(expand = c(0,0.02)) + theme(text=element_text(size=18),legend.title=element_text(size=16))
 
-#ggsave(paste(load_path, 'figs/', 'all_classic_dw_bacc_', as.character(d),dw_sfx, '.pdf', sep=''), plot = p_bacc, device = 'pdf', width = 7, height = 5)
+# ggsave(paste(load_path, d,'_',type,'_serial_dilutions_withRBM_v2.pdf', sep=''), plot = p_bacc, device = 'pdf', width = 8, height = 5)
 
 
 all_bacc_stats_df = all_data_df %>% filter(Dataset=="Valid",variable=="Bal.Accuracy")
-cl_bacc_pop = cldataraw[,c("frac","method","val_bacc")]
+cl_bacc_pop = cldataraw[,c("frac","method","val_bacc","tr_bacc")]
+cl_bacc_pop$method = toupper(cl_bacc_pop$method)
+cl_bacc_pop$method[cl_bacc_pop$method=="RIDGE"] = "Ridge"
 dw_bacc_pop = data.frame()
+sa_bacc_pop = data.frame()
+field_bacc_pop = data.frame()
+rand_bacc_pop = data.frame()
+rbm_bacc_pop = data.frame()
 for (n in 1 : length(dwdataraw)) {
-  dw_bacc_pop = rbind(dw_bacc_pop,dwdataraw[[n]][,c("frac","val_bacc")])
+  dw_bacc_pop = rbind(dw_bacc_pop,dwdataraw[[n]][,c("frac","val_bacc","tr_bacc")])
+  sa_bacc_pop = rbind(sa_bacc_pop,sadataraw[[n]][,c("frac","val_bacc","tr_bacc")])
+  field_bacc_pop = rbind(field_bacc_pop,fielddataraw[[n]][,c("frac","val_bacc","tr_bacc")])
+  rand_bacc_pop = rbind(rand_bacc_pop,randdataraw[[n]][,c("frac","val_bacc","tr_bacc")])
+  rbm_bacc_pop = rbind(rbm_bacc_pop,rbmdataraw[[n]][,c("frac","val_bacc","tr_bacc")])
 }
 dw_bacc_pop$method = 'D-Wave'
-all_bacc_pop = rbind(cl_bacc_pop,dw_bacc_pop)
-
+sa_bacc_pop$method = 'SA'
+rand_bacc_pop$method = 'Random'
+field_bacc_pop$method = 'Field'
+rbm_bacc_pop$method = 'RBM'
+all_bacc_pop = rbind(cl_bacc_pop,dw_bacc_pop,sa_bacc_pop,field_bacc_pop,rand_bacc_pop,rbm_bacc_pop)
 #saveRDS(all_bacc_pop,paste(load_path,d,'_all_bacc_pop_data',dw_sfx,'.RDS',sep=''))
 #saveRDS(all_bacc_stats_df,paste(load_path,d,'_bacc_stats',dw_sfx,'.RDS',sep=''))
 
@@ -213,46 +232,55 @@ all_data_bacc = all_data_df %>%
   group_by(Frac,Algorithm)
 all_data_bacc[all_data_bacc$Dataset=="Valid","Dataset"] = "Test" 
 
-mean_diff_df = all_data_bacc %>% 
-  summarise(over=value[Dataset=="Train"] - value[Dataset=="Test"]) %>% 
-  group_by(Algorithm) %>% 
-  summarise(mean_overf = mean(over))
 
-overf_order = mean_diff_df$Algorithm[order(mean_diff_df$mean_overf)]
-all_data_bacc$Algorithm= factor(all_data_bacc$Algorithm,levels=overf_order)
+tmp_df = all_bacc_pop %>% subset(val_bacc > 0.7) %>% group_by(method,frac)
+# keep so can find p-values 
+
+tmp_df2 = tmp_df %>% subset(val_bacc < tr_bacc) %>% 
+  summarise(mean_tr=mean(tr_bacc), 
+            mean_tst = mean(val_bacc),
+            sem_tr = sd(tr_bacc)/sqrt(length(tr_bacc)), 
+            sem_tst = sd(val_bacc)/sqrt(length(val_bacc))
+            ) 
+
+mean_diff_df = all_data_bacc %>% group_by(Algorithm) %>% 
+  summarise(overf=mean(value[Dataset=="Train"] - value[Dataset=="Test"]))
+lvs = mean_diff_df$Algorithm[order(mean_diff_df$overf)]
+  
+# mean_diff_df = tmp_df2 %>%
+#   summarise(overf=mean(mean_tr-mean_tst))
+# lvs = mean_diff_df$method[order(mean_diff_df$overf)]
+  
+all_data_bacc$Algorithm = factor(all_data_bacc$Algorithm,levels=lvs)
 
 p_overf = ggplot(data = all_data_bacc,aes(x=Frac,y=value)) + 
   geom_point(aes(color=Dataset)) + #,size=3) + 
   geom_line(aes(color=Dataset)) + #,size=1) + 
   geom_errorbar(aes(color=Dataset,linetype='dashed',width=0.025,ymin=(value-sem),ymax=value+sem),size=0.75) + 
   scale_color_manual(values=c("blue","red")) + #scale_y_continuous(breaks=c(0.5,0.75,1)) + scale_x_continuous(breaks=c(0.2,0.6,1.0),labels=c("0.2","0.6","1")) + 
-  facet_wrap(~Algorithm,nrow=3,ncol=3) + 
+  facet_wrap(~Algorithm,nrow=3) + 
   theme_bw() + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + 
   labs(x="Fraction of Training Data",y="Balanced Accuracy") +
-  guides(linetype=FALSE,size=FALSE) + theme(text=element_text(size=36), panel.spacing.x=unit(1,"lines")) #+ 
+  guides(linetype=FALSE,size=FALSE) + theme(text=element_text(size=18), panel.spacing.x=unit(2.5,"lines")) #+ 
   #theme(legend.position="bottom",legend.direction = "horizontal")
 show(p_overf)
-#ggsave(paste(load_path,'figs/','all_bacc_overfit_',as.character(d),'.pdf',sep=''),plot=p_overf,device='pdf',width=9,height=7)
+# ggsave(paste(load_path,'all_bacc_overfit_',as.character(d),'_',type,'_withRBM_v2.pdf',sep=''),plot=p_overf,device='pdf',width=12,height=6)
 
-# # -------------------- #
-# # balanced accuracy overfitting - summary plot
-# #choose only test balanced accuracy, then remove columns that no longer vary
-# dw_overfbacc=dw_overf[dw_overf$variable=="Bal.Accuracy" & dw_overf$Algorithm=="LASSO",!(names(dw_overf) %in% c("variable","Dataset"))]
-# dw_overfbacc['Algorithm']="Q.Annealing"
-# cl_overfbacc=cl_overf[cl_overf$variable=="Bal.Accuracy",!(names(cl_overf) %in% c("variable","Dataset"))]
-# 
-# overfbaccdata=rbind(cl_overfbacc,dw_overfbacc)
-# overfbaccdata=overfbaccdata[order(overfbaccdata$Algorithm,overfbaccdata$Frac),c(2,1,3,4)]
-# rownames(overfbaccdata)=NULL
-# 
-# p_overfbacc = ggplot(data = overfbaccdata, aes(x=Frac, y=over)) + geom_point(aes(colour = Algorithm)) + geom_line(aes(colour = Algorithm))+
-#   geom_errorbar(aes(colour = Algorithm,linetype='dashed',width=0.015,ymin=(over-sem),ymax=(over+sem))) +scale_color_manual(values=summary_plotcolors) + theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank()) + labs(x='Fraction of Training Data (80%)', y='Balanced Accuracy Train-Test (Overfitting)')
-# #ggsave(paste(base_dir, 'figs/', 'all_classic_dw_overfbacc_', as.character(name), '.pdf', sep=''), plot = p_overfbacc, device = 'pdf', width = 25, height = 15)
-# 
-# # -------------------- #
-# # Cramer Von-Mises for overfitting and test data
-# # pvalue is interpreted as probability observations happen by chance if the two distributions are the same
-# cvm_overf = full_overf %>% group_by(Algorithm,variable) %>% summarise(pval_overf=round(CvM.test(over[Dataset=="Tr-Tst"],over[Dataset=="Tr-Tst.DW"])$p.value,decimals)) %>% as.data.frame() # statistic=CvM.test(over[Dataset=="Tr-Tst"],over[Dataset=="Tr-Tst.DW"])$statistic
-# cvm_test = fulldata %>% filter(Frac != 1, grepl("Test",Dataset)) %>% group_by(Algorithm,variable) %>% summarise(pval_test=round(CvM.test(value[Dataset=="ExpandTest"],value[Dataset=="ExpandTest.DW"])$p.value,decimals)) %>% as.data.frame()
-# 
-# cvm_summary = merge(cvm_overf,cvm_test,by=c("Algorithm","variable"))
+
+#ERpn gene: compare NB to D-Wave at 0.02
+#lumAB gene: compare SVM and RF to D-Wave at 0.05 
+#lumAB: compare SVM to D-Wave at 0.2 
+#ERpn: compare SVM to D-Wave at 0.1
+p_df = all_bacc_pop %>% subset(frac==0.2 & method %in% c("RBM","SVM")) %>% mutate(diff = tr_bacc - val_bacc)
+res <- wilcox.test(tr_bacc - val_bacc ~ method, data = p_df, paired = FALSE)
+print(res$p.value)
+overf_stats = p_df %>% group_by(method) %>% summarise(mean=mean(diff),sem=sd(diff)/sqrt(length(diff)))
+print(overf_stats)
+
+res <- wilcox.test(val_bacc ~ method,data = p_df,paired=F)
+print(res$p.value)
+st = p_df %>% group_by(method) %>% summarise(mean=mean(val_bacc),sem=sd(val_bacc)/sqrt(length(val_bacc)))
+print(st)
+# p_df = tmp_df %>% subset(frac==0.05 & method %in% c("D-Wave","RF"))
+# res <- wilcox.test(tr_bacc - val_bacc ~ method, data = p_df, paired = FALSE)
+# print(res$p.value)

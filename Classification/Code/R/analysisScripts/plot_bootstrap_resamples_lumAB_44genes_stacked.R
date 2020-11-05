@@ -16,7 +16,7 @@ library(grid)
 library(tidyr)
 
 
-base_dir ='/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/quantum/Results/bootstrap_resamples/'
+base_dir ='/Users/rli/OneDrive - Genuity Science/Projects/quantumML/Classification/output/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
 # read lumAB after running 100 runs on 44 genes derived from top pc1 for a single cut
@@ -45,9 +45,13 @@ all_rand_info = readRDS(paste(base_dir,"lumAB_gene_bootstrap_resamples_rand_nsol
 all_rand_info$method <- "Random"
 all_rand_info[is.na(all_rand_info)] <- 0
 
+#RBM info
+all_rbm_info = readRDS(paste(base_dir,"lumAB_gene_rbm_save_all_v2.RDS",sep=""))$info
+all_rbm_info$method <- "RBM"
+all_rbm_info[is.na(all_rbm_info)] <- 0
 
 # Combining DW, Classical, SA, random, field results in one data frame
-all_info = rbind(all_dw_info,l.info,all_sa_info,all_rand_info,all_fl_info)
+all_info = rbind(all_dw_info,l.info,all_sa_info,all_rand_info,all_fl_info,all_rbm_info)
 
 # make dataset name consistent
 all_info$dataset <- "lumAB_gene"
@@ -80,11 +84,11 @@ algo_df <- algo_df %>%  mutate(method = str_replace(method, "dw", "DWave"))
 algo_df <- algo_df %>%  mutate(method = str_replace(method, "sa", "SA"))
 
 levels(algo_df$metric)=c("Accuracy","Bal.Accuracy","AUC","Precision","Recall","F1 score")
-algo_df$method = factor(algo_df$method,levels=c("SVM","LASSO","Ridge","RF","NB" ,"SA","DWave","IBMsim","Random","Field")) #
+algo_df$method = factor(algo_df$method,levels=c("SVM","LASSO","Ridge","RF","NB" ,"SA","DWave","IBMsim","Random","Field","RBM")) #
 algo_df2 = subset(algo_df,metric %in% c("Bal.Accuracy","Accuracy","AUC","F1 score"))
 
 algo_df2 <- algo_df2 %>% 
-  mutate(dataset = str_replace(dataset, "lumAB_gene", "LumA.vs.LumB"))
+  mutate(dataset = str_replace(dataset, "lumAB_gene", "LumA vs. LumB"))
 
 nleg = length(unique(algo_df2$dataset))
 nmeth = length(unique(algo_df2$method))
@@ -105,7 +109,8 @@ tmp_df$bacc_order = group_order
 tmp_df = tmp_df %>% ungroup() %>% group_by(dataset,metric) %>% arrange(dataset,bacc_order) %>%
   unite("dataset_baccorder",dataset,bacc_order,sep="_",remove=FALSE) %>% ungroup()
 
-tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder)
+# get them in the right order
+tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder,levels = unique(tmp_df$dataset_baccorder))
 
 p_test = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=metric)) + 
   geom_errorbar(aes(color=metric,width=0.1,ymin=(value-sem),ymax=(value+sem))) + 
@@ -113,5 +118,5 @@ p_test = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=metric)) +
   facet_wrap(vars(dataset),scales="free",nrow=nleg) + 
   theme_bw() + 
   scale_x_discrete(breaks=tmp_df$dataset_baccorder,labels=tmp_df$method,expand=c(0.03,0)) +
-  theme(legend.position="bottom",text=element_text(size=16)) + 
-  xlab("Algorithm") + ylab("Value") + labs(color="Metric")
+  theme(legend.position="bottom",text=element_text(size=20)) + 
+  xlab("Algorithm") + ylab("Value") + labs(color="Metric") 

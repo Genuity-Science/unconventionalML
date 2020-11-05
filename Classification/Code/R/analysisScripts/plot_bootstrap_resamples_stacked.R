@@ -15,7 +15,7 @@ library(stringr)
 #library(grid)
 library(tidyr)
 
-base_dir ='/Users/rli/OneDrive - NextCODE Health/Projects/quantumML/Classification/classical/output/'
+base_dir ='/Users/rli/OneDrive - Genuity Science/Projects/quantumML/Classification/output/'
 sem <- function(x) {sd(x)/sqrt(length(x))}
 
 # define datasets to loop over 
@@ -25,7 +25,7 @@ datasets = c("brcaMatchedTN","ERpn","kirckirp","luadlusc","lumAB")
 all_cl_info = data.frame()
 for (n in 1:length(datasets)) {
   dataset = datasets[[n]]
-  l = readRDS(paste(cl_dir, dataset,'_multirun_save.RDS',sep="")) #_multirun_save.RDS
+  l = readRDS(paste(base_dir, dataset,'_multirun_save.RDS',sep="")) #_multirun_save.RDS
   info = l$info
   info$dataset = dataset
   all_cl_info = rbind(all_cl_info,info)
@@ -33,22 +33,26 @@ for (n in 1:length(datasets)) {
 
 # simulated annealing info
 # insert name of appropriate rds file
-all_sa_info = readRDS(paste(base_dir,"bootstrap_resamples_sa_nsols_20_ntotsols_1000.RDS",sep=""))
+all_sa_info = readRDS(paste(base_dir,"bootstrap_resamples_sa_nsols20_ntotsols1000.RDS",sep=""))
 
 # D-Wave info
-all_dw_info = readRDS(paste(base_dir,"bootstrap_resamples_dw_nsols_20.RDS",sep=""))
+all_dw_info = readRDS(paste(base_dir,"bootstrap_resamples_dw_nsols20_ntotsols1000.RDS",sep=""))
 all_dw_info[c("tr_auprc","tst_auprc")] = NULL
 
 #Random info
-all_rand_info = readRDS(paste(base_dir,"bootstrap_resamples_rand_nsols20.RDS",sep=""))
+all_rand_info = readRDS(paste(base_dir,"bootstrap_resamples_rand_nsols20_ntotsols1000.RDS",sep=""))
 all_rand_info$method <- "Random"
 all_rand_info[c("tr_auprc","tst_auprc")] = NULL
 
+# Field info
 all_field_info = readRDS(paste(base_dir,"bootstrap_resamples_field.RDS",sep=""))
 all_field_info$method <- "Field"
 
+# rbm info
+all_rbm_info = readRDS(paste(base_dir,"rbm_binomial_info.RDS",sep=""))
+
 # Combining DW, Classical, SA, IBM sim results in one data frame
-all_info = rbind(all_cl_info,all_dw_info,all_sa_info,all_rand_info,all_field_info)
+all_info = rbind(all_cl_info,all_dw_info,all_sa_info,all_rand_info,all_field_info,all_rbm_info)
 all_info[is.na(all_info)] = 0 # substitute 0 for NA 
 mean_stats = aggregate(.~method+dataset,all_info,mean)
 sem_stats = aggregate(.~method+dataset,all_info,sem)
@@ -77,7 +81,7 @@ algo_df <- algo_df %>%  mutate(method = str_replace(method, "dw", "D-Wave"))
 algo_df <- algo_df %>%  mutate(method = str_replace(method, "sa", "SA"))
 
 levels(algo_df$metric)=c("Accuracy","Bal.Accuracy","AUC","Precision","Recall","F1 score")
-algo_df$method = factor(algo_df$method,levels=c("SVM","LASSO","Ridge","RF","NB","SA","D-Wave","Field","IBMsim","Random"))
+algo_df$method = factor(algo_df$method,levels=c("SVM","LASSO","Ridge","RF","NB","SA","D-Wave","Field","IBMsim","Random","RBM"))
 algo_df2 = subset(algo_df,metric %in% c("Bal.Accuracy","Accuracy","AUC","F1 score"))
 
 algo_df2 <- algo_df2 %>% 
@@ -90,6 +94,9 @@ algo_df2 <- algo_df2 %>%
   mutate(dataset = str_replace(dataset, "kirckirp", "KIRC vs. KIRP"))
 algo_df2 <- algo_df2 %>% 
   mutate(dataset = str_replace(dataset, "luadlusc", "LUAD vs. LUSC"))
+
+# filter lumABgene for now
+algo_df2 <- algo_df2 %>% filter(dataset != "LumA vs. LumB_gene")
 
 nleg = length(unique(algo_df2$dataset))
 nmeth = length(unique(algo_df2$method))
@@ -106,7 +113,8 @@ tmp_df$bacc_order = group_order
 tmp_df = tmp_df %>% ungroup() %>% group_by(dataset,metric) %>% arrange(dataset,bacc_order) %>%
   unite("dataset_baccorder",dataset,bacc_order,sep="_",remove=FALSE) %>% ungroup() %>% rename(Metric=metric)
 
-tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder)
+# get them in the right order
+tmp_df$dataset_baccorder = factor(tmp_df$dataset_baccorder,levels = unique(tmp_df$dataset_baccorder))
 
 p = ggplot(tmp_df,aes(x=dataset_baccorder,y=value,group=Metric)) + 
   geom_errorbar(aes(color=Metric,width=0.1,ymin=(value-sem),ymax=(value+sem))) + 

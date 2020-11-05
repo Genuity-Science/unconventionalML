@@ -30,7 +30,9 @@ Mainly used for preprocessing and output data files, running classical classifie
 #### R/runScripts
 - \{6cancer,all\}\_bootstrap_resamples.R: Runs conventional approaches on \{6cancer, all binomial\} datasets. Outputs .RDS files. 
 - \{6cancer,\}\_serial_dilutions_cl.R: Runs conventional approaches on \{6cancer, binomial\} fractional decrease of training datasets. Outputs .RDS files
-- lumAB_diffexp_bootstrap_resamples.R: Runs conventional approaches on genes from differential expression. Outputs .RDS files. 
+- lumAB_diffexp_bootstrap_resamples.R: Runs conventional approaches on genes from differential expression. Outputs .RDS files.
+- \{6cancer\_,\}serial_dilutions_RBM.R: Runs RBM on \{6cancer, all binomial\} fractional decrease of training datasets. Outputs .RDS files 
+- \{6cancer\_,\}RBM\_Script.R: Runs RBM on \{6cancer, all binomial\} datasets. Outputs .RDS files.
 - Notes: all files can be run with commandline arguments to facilitate running on a cluster. Rather than loading the splits, data is precomputed and saved in .mat files. 
 
 #### R/analysisScripts

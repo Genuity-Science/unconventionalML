@@ -19,3 +19,10 @@ Classification/quantum/Data/
 
 # Ignore MAC .DS_STORE
 *DS_Store
+
+Data/
+drafts/
+figures/
+tmp/
+
+*feather

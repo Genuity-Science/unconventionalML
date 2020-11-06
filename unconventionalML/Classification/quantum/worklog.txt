@@ -1,0 +1,14 @@
+01/27/2020
+
+- redo all PCA stuff (because may not have normalized the data appropriately), safer to just redo it (technically, everything that did with flashPCA should be fine, but it's safer to just redo it)
+- need to redo: 6cancer bootstrap resamples, serial dilutions
+- the other bootstrap resamples should probably be ok, because would normalize the data before doing it, but need to check whether did after using the "unnormalized data"; i.e., so that it includes possible features that are zero-variance in train data but not in other splits
+- gene-level data will leave alone 
+
+- then need to redo all the classical approaches on the updated datasets
+- do i need to redo lumAB serial dilutions? Technically i probably should, since had already removed the zero variance columns. Actually, probably don't need to because using splits based on the train dataset, which were already normalized for 0-variance. So it should be fine. If they are zero-variance in the train data, they will be zero-variance in the splits of the train data (why didn't I run before? probably because thought I had to rerun) 
+
+01/29/2020
+- finished running all classical algorithms, copied RDS files to laptop, except for the gene-level lumAB data
+- need to generate gene-level lumAB data
+

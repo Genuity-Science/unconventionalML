@@ -3,7 +3,7 @@ Data and scripts to run classical and quantum ML algorithms, clustering, and sem
 
 ACCESS TO DATA:
 Normalized train and test data matrices for binomial and six-cancer comparisons are at the link below:
-To be updated
+To be updated soon
 
 Login username and password:
 

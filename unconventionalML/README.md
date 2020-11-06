@@ -1,4 +1,4 @@
-# quantumML
+# unconventional ML
 Data and scripts to run classical and quantum ML algorithms, clustering, and semantic search engine tables and figures.
 
 ACCESS TO DATA:
